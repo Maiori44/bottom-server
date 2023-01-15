@@ -143,6 +143,7 @@ pub struct App {
     pub temp_state: TempState,
     pub disk_state: DiskState,
     pub battery_state: BatteryState,
+    pub terminal_state: TerminalState,
     pub basic_table_widget_state: Option<BasicTableWidgetState>,
     pub app_config_fields: AppConfigFields,
     pub widget_map: HashMap<u64, BottomWidget>,
@@ -1083,7 +1084,7 @@ impl App {
                     }
                 }
             }
-            self.handle_char(caught_char);
+            self.handle_char(caught_char); 
         } else if self.help_dialog_state.is_showing_help {
             match caught_char {
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {

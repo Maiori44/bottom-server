@@ -399,6 +399,13 @@ impl Painter {
                         true,
                         app_state.current_widget.widget_id,
                     ),
+                    Terminal => self.draw_terminal_display(
+                        f,
+                        app_state,
+                        rect[0],
+                        true,
+                        app_state.current_widget.widget_id,
+                    ),
                     _ => {}
                 }
             } else if app_state.app_config_fields.use_basic_mode {
@@ -786,6 +793,13 @@ impl Painter {
                         widget.widget_id,
                     ),
                     Battery => self.draw_battery_display(
+                        f,
+                        app_state,
+                        *widget_draw_loc,
+                        true,
+                        widget.widget_id,
+                    ),
+                    Terminal => self.draw_terminal_display(
                         f,
                         app_state,
                         *widget_draw_loc,

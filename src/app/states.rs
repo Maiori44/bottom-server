@@ -9,7 +9,7 @@ use crate::{
     utils::gen_util::str_width,
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidget, TempWidgetState,
+        ProcWidget, TempWidgetState, TerminalWidgetState,
     },
 };
 
@@ -396,6 +396,24 @@ impl BatteryState {
     }
 
     pub fn get_widget_state(&self, widget_id: u64) -> Option<&BatteryWidgetState> {
+        self.widget_states.get(&widget_id)
+    }
+}
+
+pub struct TerminalState {
+    pub widget_states: HashMap<u64, TerminalWidgetState>, //PLACEHOLDER
+}
+
+impl TerminalState {
+    pub fn init(widget_states: HashMap<u64, TerminalWidgetState>) -> Self {
+        TerminalState { widget_states }
+    }
+
+    pub fn get_mut_widget_state(&mut self, widget_id: u64) -> Option<&mut TerminalWidgetState> {
+        self.widget_states.get_mut(&widget_id)
+    }
+
+    pub fn get_widget_state(&self, widget_id: u64) -> Option<&TerminalWidgetState> {
         self.widget_states.get(&widget_id)
     }
 }

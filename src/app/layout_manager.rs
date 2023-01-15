@@ -899,6 +899,7 @@ pub enum BottomWidgetType {
     BasicNet,
     BasicTables,
     Battery,
+    Terminal,
 }
 
 impl BottomWidgetType {
@@ -922,6 +923,7 @@ impl BottomWidgetType {
             Temp => "Temperature",
             Disk => "Disks",
             Battery => "Battery",
+            Terminal => "Terminal",
             _ => "",
         }
     }
@@ -947,6 +949,7 @@ impl std::str::FromStr for BottomWidgetType {
             "disk" => Ok(BottomWidgetType::Disk),
             "empty" => Ok(BottomWidgetType::Empty),
             "battery" | "batt" if cfg!(feature = "battery") => Ok(BottomWidgetType::Battery),
+            "terminal" => Ok(BottomWidgetType::Terminal),
             _ => {
                 if cfg!(feature = "battery") {
                     Err(BottomError::ConfigError(format!(
@@ -967,6 +970,8 @@ Supported widget names:
 |           disk           |
 +--------------------------+
 |       batt, battery      |
++--------------------------+
+|         terminal         |
 +--------------------------+
                 ",
                         s
@@ -989,6 +994,8 @@ Supported widget names:
 +--------------------------+
 |           disk           |
 +--------------------------+
+|         terminal         |
++--------------------------+
                 ",
                         s
                     )))
@@ -1008,4 +1015,5 @@ pub struct UsedWidgets {
     pub use_disk: bool,
     pub use_temp: bool,
     pub use_battery: bool,
+    pub use_terminal: bool,
 }

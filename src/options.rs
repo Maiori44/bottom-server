@@ -20,7 +20,7 @@ use crate::{
     utils::error::{self, BottomError},
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidget, ProcWidgetMode, TempWidgetState,
+        ProcWidget, ProcWidgetMode, TempWidgetState, TerminalWidgetState,
     },
 };
 
@@ -198,6 +198,7 @@ pub fn build_app(
     let mut temp_state_map: HashMap<u64, TempWidgetState> = HashMap::new();
     let mut disk_state_map: HashMap<u64, DiskTableWidget> = HashMap::new();
     let mut battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
+    let mut terminal_state_map: HashMap<u64, TerminalWidgetState> = HashMap::new();
 
     let autohide_timer = if autohide_time {
         Some(Instant::now())
@@ -350,6 +351,10 @@ pub fn build_app(
                             battery_state_map
                                 .insert(widget.widget_id, BatteryWidgetState::default());
                         }
+                        Terminal => {
+                            terminal_state_map
+                                .insert(widget.widget_id, TerminalWidgetState::default());
+                        }
                         _ => {}
                     }
                 }
@@ -392,6 +397,7 @@ pub fn build_app(
         use_disk: used_widget_set.get(&Disk).is_some(),
         use_temp: used_widget_set.get(&Temp).is_some(),
         use_battery: used_widget_set.get(&Battery).is_some(),
+        use_terminal: used_widget_set.get(&Terminal).is_some(),
     };
 
     let disk_filter =
@@ -414,6 +420,7 @@ pub fn build_app(
         .disk_state(DiskState::init(disk_state_map))
         .temp_state(TempState::init(temp_state_map))
         .battery_state(BatteryState::init(battery_state_map))
+        .terminal_state(TerminalState::init(terminal_state_map))
         .basic_table_widget_state(basic_table_widget_state)
         .current_widget(widget_map.get(&initial_widget_id).unwrap().clone()) // TODO: [UNWRAP] - many of the unwraps are fine (like this one) but do a once-over and/or switch to expect?
         .widget_map(widget_map)

@@ -18,3 +18,6 @@ pub use mem_graph::*;
 
 pub mod battery_widget;
 pub use battery_widget::*;
+
+pub mod terminal_widget;
+pub use terminal_widget::*;

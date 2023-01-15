@@ -9,3 +9,4 @@ pub mod network_basic;
 pub mod network_graph;
 pub mod process_table;
 pub mod temperature_table;
+pub mod terminal_display;
