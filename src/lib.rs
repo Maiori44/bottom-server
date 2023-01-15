@@ -124,7 +124,8 @@ pub fn handle_key_event_or_break(
                 KeyCode::Down if terminal_widget_state.offset > 0 => {
                     terminal_widget_state.offset -= 1
                 }
-                _ if app.is_expanded => {
+                KeyCode::Esc => app.is_expanded = false,
+                _ if app.is_expanded && !terminal_widget_state.is_elaborating => {
                     match event.code {
                         KeyCode::Left
                             if terminal_widget_state.input_offset
@@ -135,11 +136,7 @@ pub fn handle_key_event_or_break(
                         KeyCode::Right if terminal_widget_state.input_offset > 0 => {
                             terminal_widget_state.input_offset -= 1
                         }
-                        KeyCode::Esc => app.is_expanded = false,
-                        KeyCode::Enter if
-                            !terminal_widget_state.stdin.is_empty()
-                                && !terminal_widget_state.is_elaborating =>
-                        {
+                        KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
                             terminal_widget_state.is_elaborating = true;
                             let mut t = UnsafeTerminalWidgetState { terminal: terminal_widget_state };
                             thread::spawn(move || {
