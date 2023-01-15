@@ -177,6 +177,10 @@ pub fn handle_key_event_or_break(
                                 input.split_off(input.len() - terminal_widget_state.input_offset);
                             terminal_widget_state.stdin = format!("{input}{c}{right}")
                         }
+                        KeyCode::F(9) => {
+                            terminal_widget_state.stdout.clear();
+                            terminal_widget_state.offset = 0;
+                        }
                         _ => {}
                     }
                     return false;
