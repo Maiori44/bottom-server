@@ -88,7 +88,9 @@ impl Painter {
             contents.push(Spans::from(Span::styled(
                 format!(
                     "Input: {}",
-                    if app_state.is_expanded {
+                    if terminal_widget_state.is_elaborating {
+                        String::from("<Elaborating...>")
+                    } else if app_state.is_expanded {
                         let mut input = terminal_widget_state.stdin.clone();
                         let right =
                             input.split_off(input.len() - terminal_widget_state.input_offset);

@@ -47,9 +47,8 @@ use crossterm::{
 };
 use data_conversion::*;
 use options::*;
-use serde::__private::from_utf8_lossy;
-use strip_ansi_escapes::strip;
 use utils::error;
+use widgets::UnsafeTerminalWidgetState;
 
 pub mod app;
 pub mod utils {
@@ -137,25 +136,24 @@ pub fn handle_key_event_or_break(
                             terminal_widget_state.input_offset -= 1
                         }
                         KeyCode::Esc => app.is_expanded = false,
-                        KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
-                            terminal_widget_state.input_offset = 0;
-                            let command: String = terminal_widget_state.stdin.clone();
-                            terminal_widget_state.stdin.clear();
-                            let output = Command::new("bash")
-                                .args(["-c", &command])
-                                .output()
-                                .unwrap();
-                            terminal_widget_state.stdout +=
-                                &from_utf8_lossy(&strip(output.stdout).unwrap());
-                            terminal_widget_state.stdout +=
-                                &from_utf8_lossy(&strip(output.stderr).unwrap());
-                            if terminal_widget_state.stdout.len() > 10000 {
-                                let mut chars = terminal_widget_state.stdout.chars();
-                                for _ in 0..terminal_widget_state.stdout.len() - 10000 {
-                                    chars.next();
-                                }
-                                terminal_widget_state.stdout = chars.collect();
-                            }
+                        KeyCode::Enter if
+                            !terminal_widget_state.stdin.is_empty()
+                                && !terminal_widget_state.is_elaborating =>
+                        {
+                            terminal_widget_state.is_elaborating = true;
+                            let mut t = UnsafeTerminalWidgetState { terminal: terminal_widget_state };
+                            thread::spawn(move || {
+                                t.set_input_offset(0);
+                                let command = t.stdin();
+                                let output = Command::new("bash")
+                                    .args(["-c", &command])
+                                    .output()
+                                    .unwrap();
+                                t.append_output(output.stdout);
+                                t.append_output(output.stderr);
+                                t.limit_output();
+                                t.finish();
+                            });
                         }
                         KeyCode::Backspace => {
                             if let Some(offset) = {
