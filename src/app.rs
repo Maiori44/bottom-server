@@ -1084,7 +1084,7 @@ impl App {
                     }
                 }
             }
-            self.handle_char(caught_char); 
+            self.handle_char(caught_char);
         } else if self.help_dialog_state.is_showing_help {
             match caught_char {
                 '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {

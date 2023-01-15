@@ -19,13 +19,14 @@ use std::{
     io::{stderr, stdout, Write},
     panic::PanicInfo,
     path::PathBuf,
+    process::Command,
     sync::Mutex,
     sync::{
         mpsc::{Receiver, Sender},
         Arc, Condvar,
     },
     thread::{self, JoinHandle},
-    time::{Duration, Instant}, process::Command,
+    time::{Duration, Instant},
 };
 
 use app::{
@@ -47,8 +48,8 @@ use crossterm::{
 use data_conversion::*;
 use options::*;
 use serde::__private::from_utf8_lossy;
-use utils::error;
 use strip_ansi_escapes::strip;
+use utils::error;
 
 pub mod app;
 pub mod utils {
@@ -113,37 +114,46 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 pub fn handle_key_event_or_break(
     event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>,
 ) -> bool {
-    if let Some(terminal_widget_state) =
-        app.terminal_state.widget_states.get_mut(&app.current_widget.widget_id)
+    if let Some(terminal_widget_state) = app
+        .terminal_state
+        .widget_states
+        .get_mut(&app.current_widget.widget_id)
     {
         if !event.modifiers.contains(KeyModifiers::CONTROL) {
             match event.code {
                 KeyCode::Up => terminal_widget_state.offset += 1,
-                KeyCode::Down if terminal_widget_state.offset > 0 =>
-                    terminal_widget_state.offset -= 1,
+                KeyCode::Down if terminal_widget_state.offset > 0 => {
+                    terminal_widget_state.offset -= 1
+                }
                 _ if app.is_expanded => {
                     match event.code {
                         KeyCode::Left
-                            if terminal_widget_state.input_offset < terminal_widget_state.stdin.len() =>
+                            if terminal_widget_state.input_offset
+                                < terminal_widget_state.stdin.len() =>
                         {
                             terminal_widget_state.input_offset += 1
-                        },
+                        }
                         KeyCode::Right if terminal_widget_state.input_offset > 0 => {
                             terminal_widget_state.input_offset -= 1
-                        },
+                        }
                         KeyCode::Esc => app.is_expanded = false,
                         KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
                             terminal_widget_state.input_offset = 0;
                             let command: String = terminal_widget_state.stdin.clone();
                             terminal_widget_state.stdin.clear();
-                                let output = Command::new("bash").args(["-c", &command]).output().unwrap();
-                            terminal_widget_state.stdout += &from_utf8_lossy(&strip(output.stdout).unwrap());
-                            terminal_widget_state.stdout += &from_utf8_lossy(&strip(output.stderr).unwrap());
+                            let output = Command::new("bash")
+                                .args(["-c", &command])
+                                .output()
+                                .unwrap();
+                            terminal_widget_state.stdout +=
+                                &from_utf8_lossy(&strip(output.stdout).unwrap());
+                            terminal_widget_state.stdout +=
+                                &from_utf8_lossy(&strip(output.stderr).unwrap());
                             if terminal_widget_state.stdout.len() > 10000 {
                                 let mut chars = terminal_widget_state.stdout.chars();
                                 for _ in 0..terminal_widget_state.stdout.len() - 10000 {
                                     chars.next();
-                            }
+                                }
                                 terminal_widget_state.stdout = chars.collect();
                             }
                         }
@@ -151,11 +161,13 @@ pub fn handle_key_event_or_break(
                             if let Some(offset) = {
                                 if terminal_widget_state.stdin.is_empty() {
                                     None
-                                } else if
-                                    terminal_widget_state.stdin.len() > terminal_widget_state.input_offset
+                                } else if terminal_widget_state.stdin.len()
+                                    > terminal_widget_state.input_offset
                                 {
                                     Some(
-                                    terminal_widget_state.stdin.len() - terminal_widget_state.input_offset - 1
+                                        terminal_widget_state.stdin.len()
+                                            - terminal_widget_state.input_offset
+                                            - 1,
                                     )
                                 } else {
                                     None
@@ -163,12 +175,13 @@ pub fn handle_key_event_or_break(
                             } {
                                 terminal_widget_state.stdin.remove(offset);
                             }
-                        },
+                        }
                         KeyCode::Char(c) if c.is_ascii() => {
                             let mut input = terminal_widget_state.stdin.clone();
-                            let right = input.split_off(input.len() - terminal_widget_state.input_offset);
+                            let right =
+                                input.split_off(input.len() - terminal_widget_state.input_offset);
                             terminal_widget_state.stdin = format!("{input}{c}{right}")
-                        },
+                        }
                         _ => {}
                     }
                     return false;
