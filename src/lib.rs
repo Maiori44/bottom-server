@@ -120,6 +120,7 @@ pub fn handle_key_event_or_break(
     {
         if !event.modifiers.contains(KeyModifiers::CONTROL) {
             match event.code {
+                KeyCode::End => terminal_widget_state.offset = 0,
                 KeyCode::Up => terminal_widget_state.offset += 1,
                 KeyCode::Down if terminal_widget_state.offset > 0 => {
                     terminal_widget_state.offset -= 1
