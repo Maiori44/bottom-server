@@ -111,7 +111,8 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 }
 
 pub fn handle_key_event_or_break(
-    event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>, sender: &Sender<BottomEvent>
+    event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>,
+    sender: &Sender<BottomEvent>,
 ) -> bool {
     if let Some(terminal_widget_state) = app
         .terminal_state

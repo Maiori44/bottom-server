@@ -1,7 +1,7 @@
+use crate::BottomEvent;
 use serde::__private::from_utf8_lossy;
 use std::{collections::VecDeque, sync::mpsc::Sender};
 use strip_ansi_escapes::strip;
-use crate::BottomEvent;
 
 pub struct TerminalWidgetState {
     pub stdout: String,
@@ -37,7 +37,7 @@ impl TerminalWidgetState {
 
 pub struct UnsafeTerminalWidgetState {
     pub terminal: *mut TerminalWidgetState,
-    pub sender: *const Sender<BottomEvent>
+    pub sender: *const Sender<BottomEvent>,
 }
 
 impl UnsafeTerminalWidgetState {
