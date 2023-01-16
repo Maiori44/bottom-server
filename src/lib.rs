@@ -111,7 +111,7 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 }
 
 pub fn handle_key_event_or_break(
-    event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>,
+    event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>, sender: &Sender<BottomEvent>
 ) -> bool {
     if let Some(terminal_widget_state) = app
         .terminal_state
@@ -126,7 +126,7 @@ pub fn handle_key_event_or_break(
                     terminal_widget_state.offset -= 1
                 }
                 KeyCode::Esc => app.is_expanded = false,
-                _ if app.is_expanded && !terminal_widget_state.is_elaborating => {
+                _ if app.is_expanded && !terminal_widget_state.is_working => {
                     match event.code {
                         KeyCode::Up
                             if {
@@ -151,10 +151,11 @@ pub fn handle_key_event_or_break(
                             terminal_widget_state.input_offset -= 1
                         }
                         KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
-                            terminal_widget_state.is_elaborating = true;
+                            terminal_widget_state.is_working = true;
                             terminal_widget_state.input_offset = 0;
                             let mut t = UnsafeTerminalWidgetState {
                                 terminal: terminal_widget_state,
+                                sender,
                             };
                             thread::spawn(move || {
                                 let command = t.stdin();

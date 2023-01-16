@@ -108,7 +108,7 @@ fn main() -> Result<()> {
     // Event loop
     let (collection_thread_ctrl_sender, collection_thread_ctrl_receiver) = mpsc::channel();
     let _collection_thread = create_collection_thread(
-        sender,
+        sender.clone(),
         collection_thread_ctrl_receiver,
         thread_termination_lock.clone(),
         thread_termination_cvar.clone(),
@@ -161,7 +161,12 @@ fn main() -> Result<()> {
                     try_drawing(&mut terminal, &mut app, &mut painter)?; // FIXME: This is bugged with frozen?
                 }
                 BottomEvent::KeyInput(event) => {
-                    if handle_key_event_or_break(event, &mut app, &collection_thread_ctrl_sender) {
+                    if handle_key_event_or_break(
+                        event,
+                        &mut app,
+                        &collection_thread_ctrl_sender,
+                        &sender,
+                    ) {
                         break;
                     }
                     update_data(&mut app);

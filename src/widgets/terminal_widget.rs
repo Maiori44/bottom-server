@@ -1,6 +1,7 @@
 use serde::__private::from_utf8_lossy;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::mpsc::Sender};
 use strip_ansi_escapes::strip;
+use crate::BottomEvent;
 
 pub struct TerminalWidgetState {
     pub stdout: String,
@@ -8,7 +9,7 @@ pub struct TerminalWidgetState {
     pub offset: usize,
     pub input_offset: usize,
     pub selected_input: usize,
-    pub is_elaborating: bool,
+    pub is_working: bool,
 }
 
 impl Default for TerminalWidgetState {
@@ -19,7 +20,7 @@ impl Default for TerminalWidgetState {
             offset: 0,
             input_offset: 0,
             selected_input: 0,
-            is_elaborating: false,
+            is_working: false,
         }
     }
 }
@@ -36,6 +37,7 @@ impl TerminalWidgetState {
 
 pub struct UnsafeTerminalWidgetState {
     pub terminal: *mut TerminalWidgetState,
+    pub sender: *const Sender<BottomEvent>
 }
 
 impl UnsafeTerminalWidgetState {
@@ -79,7 +81,8 @@ impl UnsafeTerminalWidgetState {
 
     pub fn finish(&mut self) {
         unsafe {
-            (*self.terminal).is_elaborating = false;
+            (*self.terminal).is_working = false;
+            (*self.sender).send(BottomEvent::Resize).unwrap_unchecked();
         }
     }
 }

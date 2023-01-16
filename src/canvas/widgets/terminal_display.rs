@@ -90,7 +90,7 @@ impl Painter {
             contents.push(Spans::from(Span::styled(
                 format!(
                     "Input: {}",
-                    if terminal_widget_state.is_elaborating {
+                    if terminal_widget_state.is_working {
                         String::from("<Elaborating...>")
                     } else if app_state.is_expanded {
                         let input = terminal_widget_state.current_input();
