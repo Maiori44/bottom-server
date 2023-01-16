@@ -154,9 +154,7 @@ pub fn handle_key_event_or_break(
                                 let command = t.stdin();
                                 let output = Command::new("bash")
                                     .args(["-c", &command])
-                                    .spawn()
-                                    .unwrap()
-                                    .wait_with_output()
+                                    .output()
                                     .unwrap();
                                 t.append_output(output.stdout);
                                 t.append_output(output.stderr);
