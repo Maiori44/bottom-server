@@ -139,11 +139,11 @@ pub fn handle_key_event_or_break(
                         }
                         KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
                             terminal_widget_state.is_elaborating = true;
+                            terminal_widget_state.input_offset = 0;
                             let mut t = UnsafeTerminalWidgetState {
                                 terminal: terminal_widget_state,
                             };
                             thread::spawn(move || {
-                                t.set_input_offset(0);
                                 let command = t.stdin();
                                 let output = Command::new("bash")
                                     .args(["-c", &command])

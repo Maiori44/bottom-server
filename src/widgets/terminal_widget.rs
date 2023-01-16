@@ -15,12 +15,6 @@ pub struct UnsafeTerminalWidgetState {
 }
 
 impl UnsafeTerminalWidgetState {
-    pub fn set_input_offset(&mut self, offset: usize) {
-        unsafe {
-            (*self.terminal).input_offset = offset;
-        }
-    }
-
     pub fn stdin(&mut self) -> String {
         unsafe {
             let stdin = (*self.terminal).stdin.clone();
