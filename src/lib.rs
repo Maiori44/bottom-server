@@ -128,17 +128,23 @@ pub fn handle_key_event_or_break(
                 KeyCode::Esc => app.is_expanded = false,
                 _ if app.is_expanded && !terminal_widget_state.is_elaborating => {
                     match event.code {
-                        KeyCode::Up if {
-                            terminal_widget_state.selected_input < terminal_widget_state.stdin.len() - 1
-                        } => {
+                        KeyCode::Up
+                            if {
+                                terminal_widget_state.selected_input
+                                    < terminal_widget_state.stdin.len() - 1
+                            } =>
+                        {
                             terminal_widget_state.selected_input += 1;
                         }
                         KeyCode::Down if terminal_widget_state.selected_input > 0 => {
                             terminal_widget_state.selected_input -= 1;
                         }
-                        KeyCode::Left if {
-                            terminal_widget_state.input_offset < terminal_widget_state.current_input().len()
-                        } => {
+                        KeyCode::Left
+                            if {
+                                terminal_widget_state.input_offset
+                                    < terminal_widget_state.current_input().len()
+                            } =>
+                        {
                             terminal_widget_state.input_offset += 1
                         }
                         KeyCode::Right if terminal_widget_state.input_offset > 0 => {

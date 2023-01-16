@@ -1,5 +1,5 @@
-use std::collections::VecDeque;
 use serde::__private::from_utf8_lossy;
+use std::collections::VecDeque;
 use strip_ansi_escapes::strip;
 
 pub struct TerminalWidgetState {

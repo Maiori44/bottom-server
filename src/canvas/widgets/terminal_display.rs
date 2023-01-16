@@ -100,15 +100,11 @@ impl Painter {
                         if right.is_empty() {
                             left.to_string()
                         } else {
-                            let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
-                            format!(
-                                "{left}{}{right}",
-                                if time % 2 == 0 {
-                                    '|'
-                                } else {
-                                    ':'
-                                }
-                            )
+                            let time = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap()
+                                .as_secs();
+                            format!("{left}{}{right}", if time % 2 == 0 { '|' } else { ':' })
                         }
                     } else {
                         String::from("<Extend to write>")
