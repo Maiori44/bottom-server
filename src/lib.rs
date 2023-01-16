@@ -128,10 +128,17 @@ pub fn handle_key_event_or_break(
                 KeyCode::Esc => app.is_expanded = false,
                 _ if app.is_expanded && !terminal_widget_state.is_elaborating => {
                     match event.code {
-                        KeyCode::Left
-                            if terminal_widget_state.input_offset
-                                < terminal_widget_state.stdin.len() =>
-                        {
+                        KeyCode::Up if {
+                            terminal_widget_state.selected_input < terminal_widget_state.stdin.len() - 1
+                        } => {
+                            terminal_widget_state.selected_input += 1;
+                        }
+                        KeyCode::Down if terminal_widget_state.selected_input > 0 => {
+                            terminal_widget_state.selected_input -= 1;
+                        }
+                        KeyCode::Left if {
+                            terminal_widget_state.input_offset < terminal_widget_state.current_input().len()
+                        } => {
                             terminal_widget_state.input_offset += 1
                         }
                         KeyCode::Right if terminal_widget_state.input_offset > 0 => {
@@ -156,29 +163,27 @@ pub fn handle_key_event_or_break(
                             });
                         }
                         KeyCode::Backspace => {
+                            let index = terminal_widget_state.selected_input;
+                            let Some(input) = terminal_widget_state.stdin.get_mut(index) else {
+                                return false;
+                            };
                             if let Some(offset) = {
-                                if terminal_widget_state.stdin.is_empty() {
+                                if input.is_empty() {
                                     None
-                                } else if terminal_widget_state.stdin.len()
-                                    > terminal_widget_state.input_offset
-                                {
-                                    Some(
-                                        terminal_widget_state.stdin.len()
-                                            - terminal_widget_state.input_offset
-                                            - 1,
-                                    )
+                                } else if input.len() > terminal_widget_state.input_offset {
+                                    Some(input.len() - terminal_widget_state.input_offset - 1)
                                 } else {
                                     None
                                 }
                             } {
-                                terminal_widget_state.stdin.remove(offset);
+                                input.remove(offset);
                             }
                         }
                         KeyCode::Char(c) if c.is_ascii() => {
-                            let mut input = terminal_widget_state.stdin.clone();
-                            let right =
-                                input.split_off(input.len() - terminal_widget_state.input_offset);
-                            terminal_widget_state.stdin = format!("{input}{c}{right}")
+                            let index = terminal_widget_state.selected_input;
+                            if let Some(stdin) = terminal_widget_state.stdin.get_mut(index) {
+                                stdin.insert(stdin.len() - terminal_widget_state.input_offset, c);
+                            }
                         }
                         KeyCode::F(9) => {
                             terminal_widget_state.stdout.clear();

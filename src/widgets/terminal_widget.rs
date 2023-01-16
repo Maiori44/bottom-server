@@ -1,13 +1,37 @@
+use std::collections::VecDeque;
 use serde::__private::from_utf8_lossy;
 use strip_ansi_escapes::strip;
 
-#[derive(Default)]
 pub struct TerminalWidgetState {
     pub stdout: String,
-    pub stdin: String,
+    pub stdin: VecDeque<String>,
     pub offset: usize,
     pub input_offset: usize,
+    pub selected_input: usize,
     pub is_elaborating: bool,
+}
+
+impl Default for TerminalWidgetState {
+    fn default() -> Self {
+        Self {
+            stdout: String::new(),
+            stdin: VecDeque::from([String::new()]),
+            offset: 0,
+            input_offset: 0,
+            selected_input: 0,
+            is_elaborating: false,
+        }
+    }
+}
+
+impl TerminalWidgetState {
+    pub fn current_input(&self) -> &String {
+        self.stdin.get(self.selected_input).unwrap()
+    }
+
+    pub fn current_input_mut(&mut self) -> &mut String {
+        self.stdin.get_mut(self.selected_input).unwrap()
+    }
 }
 
 pub struct UnsafeTerminalWidgetState {
@@ -17,8 +41,19 @@ pub struct UnsafeTerminalWidgetState {
 impl UnsafeTerminalWidgetState {
     pub fn stdin(&mut self) -> String {
         unsafe {
-            let stdin = (*self.terminal).stdin.clone();
-            (*self.terminal).stdin.clear();
+            let t = &mut (*self.terminal);
+            let stdin = t.current_input().clone();
+            if !stdin.is_empty() {
+                if t.selected_input > 0 {
+                    t.stdin.pop_front();
+                    t.stdin.push_front(stdin.clone());
+                }
+                t.stdin.push_front(String::new());
+                while t.stdin.len() > 500 {
+                    t.stdin.pop_back();
+                }
+            }
+            t.selected_input = 0;
             stdin
         }
     }

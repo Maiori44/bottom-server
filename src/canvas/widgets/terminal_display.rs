@@ -93,15 +93,17 @@ impl Painter {
                     if terminal_widget_state.is_elaborating {
                         String::from("<Elaborating...>")
                     } else if app_state.is_expanded {
-                        let mut input = terminal_widget_state.stdin.clone();
-                        let right =
-                            input.split_off(input.len() - terminal_widget_state.input_offset);
+                        let input = terminal_widget_state.current_input();
+                        let cursor = input.len() - terminal_widget_state.input_offset;
+                        let left = &input[..cursor];
+                        let right = &input[cursor..];
                         if right.is_empty() {
-                            input
+                            left.to_string()
                         } else {
+                            let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
                             format!(
-                                "{input}{}{right}",
-                                if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() % 2 == 0 {
+                                "{left}{}{right}",
+                                if time % 2 == 0 {
                                     '|'
                                 } else {
                                     ':'
