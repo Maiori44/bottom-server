@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use tui::{
     backend::Backend,
     layout::Rect,
@@ -97,7 +99,14 @@ impl Painter {
                         if right.is_empty() {
                             input
                         } else {
-                            format!("{input}|{right}")
+                            format!(
+                                "{input}{}{right}",
+                                if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() % 2 == 0 {
+                                    '|'
+                                } else {
+                                    ':'
+                                }
+                            )
                         }
                     } else {
                         String::from("<Extend to write>")
