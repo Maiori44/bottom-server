@@ -10,6 +10,10 @@ use clap::ArgMatches;
 use layout_options::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "battery")]
+use starship_battery::Manager;
+
 use typed_builder::*;
 
 use crate::{
@@ -20,7 +24,7 @@ use crate::{
     utils::error::{self, BottomError},
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidget, ProcWidgetMode, TempWidgetState, TerminalWidgetState,
+        ProcWidgetMode, ProcWidgetState, TempWidgetState, TerminalWidgetState,
     },
 };
 
@@ -194,7 +198,7 @@ pub fn build_app(
     let mut cpu_state_map: HashMap<u64, CpuWidgetState> = HashMap::new();
     let mut mem_state_map: HashMap<u64, MemWidgetState> = HashMap::new();
     let mut net_state_map: HashMap<u64, NetWidgetState> = HashMap::new();
-    let mut proc_state_map: HashMap<u64, ProcWidget> = HashMap::new();
+    let mut proc_state_map: HashMap<u64, ProcWidgetState> = HashMap::new();
     let mut temp_state_map: HashMap<u64, TempWidgetState> = HashMap::new();
     let mut disk_state_map: HashMap<u64, DiskTableWidget> = HashMap::new();
     let mut battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
@@ -323,7 +327,7 @@ pub fn build_app(
 
                             proc_state_map.insert(
                                 widget.widget_id,
-                                ProcWidget::new(
+                                ProcWidgetState::new(
                                     &app_config_fields,
                                     mode,
                                     is_case_sensitive,
@@ -851,6 +855,15 @@ fn get_hide_table_gap(matches: &ArgMatches, config: &Config) -> bool {
 }
 
 fn get_use_battery(matches: &ArgMatches, config: &Config) -> bool {
+    #[cfg(feature = "battery")]
+    if let Ok(battery_manager) = Manager::new() {
+        if let Ok(batteries) = battery_manager.batteries() {
+            if batteries.count() == 0 {
+                return false;
+            }
+        }
+    }
+
     if cfg!(feature = "battery") {
         if matches.is_present("battery") {
             return true;

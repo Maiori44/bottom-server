@@ -1,8 +1,8 @@
 [package]
 name = "bottom"
-version = "0.7.2"
+version = "0.8.1"
 authors = ["Clement Tsang <cjhtsang@uwaterloo.ca>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/ClementTsang/bottom"
 keywords = ["cross-platform", "monitoring", "cli", "top", "tui"]
 license = "MIT"
@@ -41,7 +41,7 @@ doctest = true
 doc = true
 
 [profile.release]
-# debug = true
+# debug = true # Might be nice to have a custom profile for flamegraphs.
 # strip = false
 debug = 0
 strip = "symbols"
@@ -66,8 +66,8 @@ anyhow = "1.0.57"
 backtrace = "0.3.67"
 cfg-if = "1.0.0"
 clap = { version = "3.1.12", features = ["default", "cargo", "wrap_help"] }
-const_format = "0.2.30"
 concat-string = "1.0.1"
+const_format = "0.2.30"
 crossterm = "0.25.0"
 ctrlc = { version = "3.2.4", features = ["termination"] }
 dirs = "4.0.0"
@@ -100,7 +100,7 @@ strip-ansi-escapes = "0.1.1"
 libc = "0.2.124"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-heim = { version = "0.1.0-rc.1", features = ["cpu", "disk", "net", "sensors"] }
+heim = { version = "0.1.0-rc.1", features = ["cpu", "disk", "memory", "net", "sensors"] }
 procfs = { version = "0.14.2", default-features = false }
 smol = "1.2.5"
 
@@ -108,8 +108,14 @@ smol = "1.2.5"
 heim = { version = "0.1.0-rc.1", features = ["cpu", "disk", "memory", "net"] }
 mach2 = "0.4.1"
 
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = ["user-hooks"]
+
 [target.'cfg(target_os = "windows")'.dependencies]
 heim = { version = "0.1.0-rc.1", features = ["cpu", "disk", "memory"] }
+windows = { version = "0.44.0", features = ["Win32_System_Threading", "Win32_Foundation"] }
 winapi = "0.3.9"
 
 [target.'cfg(target_os = "freebsd")'.dependencies]
@@ -175,8 +181,3 @@ depends = "libc6:armhf (>= 2.28)"
 
 [package.metadata.wix]
 output = "bottom_x86_64_installer.msi"
-
-[dev-dependencies.cargo-husky]
-version = "1"
-default-features = false
-features = ["user-hooks"]

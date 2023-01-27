@@ -12,7 +12,7 @@ pub use states::*;
 use typed_builder::*;
 use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
 
-use crate::widgets::{ProcWidget, ProcWidgetMode};
+use crate::widgets::{ProcWidgetMode, ProcWidgetState};
 use crate::{
     constants,
     data_conversion::ConvertedData,
@@ -1160,8 +1160,7 @@ impl App {
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(0);
-                    disk.force_data_update();
+                    disk.set_index(0);
                 }
             }
             'g' => {
@@ -1184,7 +1183,7 @@ impl App {
             'k' => self.on_up_key(),
             'j' => self.on_down_key(),
             'f' => {
-                self.frozen_state.toggle(&self.data_collection); // TODO: Unthawing should force a full data refresh and redraw immediately.
+                self.frozen_state.toggle(&self.data_collection); // TODO: Thawing should force a full data refresh and redraw immediately.
             }
             'c' => {
                 if let BottomWidgetType::Proc = self.current_widget.widget_type {
@@ -1192,7 +1191,7 @@ impl App {
                         .proc_state
                         .get_mut_widget_state(self.current_widget.widget_id)
                     {
-                        proc_widget_state.select_column(ProcWidget::CPU);
+                        proc_widget_state.select_column(ProcWidgetState::CPU);
                     }
                 }
             }
@@ -1202,14 +1201,13 @@ impl App {
                         .proc_state
                         .get_mut_widget_state(self.current_widget.widget_id)
                     {
-                        proc_widget_state.select_column(ProcWidget::MEM);
+                        proc_widget_state.select_column(ProcWidgetState::MEM);
                     }
                 } else if let Some(disk) = self
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(1);
-                    disk.force_data_update();
+                    disk.set_index(1);
                 }
             }
             'p' => {
@@ -1218,8 +1216,13 @@ impl App {
                         .proc_state
                         .get_mut_widget_state(self.current_widget.widget_id)
                     {
-                        proc_widget_state.select_column(ProcWidget::PID_OR_COUNT);
+                        proc_widget_state.select_column(ProcWidgetState::PID_OR_COUNT);
                     }
+                } else if let Some(disk) = self
+                    .disk_state
+                    .get_mut_widget_state(self.current_widget.widget_id)
+                {
+                    disk.set_index(5);
                 }
             }
             'P' => {
@@ -1238,14 +1241,13 @@ impl App {
                         .proc_state
                         .get_mut_widget_state(self.current_widget.widget_id)
                     {
-                        proc_widget_state.select_column(ProcWidget::PROC_NAME_OR_CMD);
+                        proc_widget_state.select_column(ProcWidgetState::PROC_NAME_OR_CMD);
                     }
                 } else if let Some(disk) = self
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(3);
-                    disk.force_data_update();
+                    disk.set_index(3);
                 }
             }
             '?' => {
@@ -1269,8 +1271,7 @@ impl App {
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(4);
-                    disk.force_data_update();
+                    disk.set_index(4);
                 }
             }
             '+' => self.on_plus(),
@@ -1294,8 +1295,7 @@ impl App {
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(2);
-                    disk.force_data_update();
+                    disk.set_index(2);
                 }
             }
             'r' => {
@@ -1303,8 +1303,7 @@ impl App {
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(5);
-                    disk.force_data_update();
+                    disk.set_index(6);
                 }
             }
             'w' => {
@@ -1312,8 +1311,7 @@ impl App {
                     .disk_state
                     .get_mut_widget_state(self.current_widget.widget_id)
                 {
-                    disk.table.set_sort_index(6);
-                    disk.force_data_update();
+                    disk.set_index(7);
                 }
             }
             'I' => self.invert_sort(),
