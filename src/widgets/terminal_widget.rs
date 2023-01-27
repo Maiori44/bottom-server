@@ -56,6 +56,10 @@ impl UnsafeTerminalWidgetState {
                 }
             }
             t.selected_input = 0;
+            let trimmed = stdin.trim();
+            if !trimmed.is_empty() {
+                (*self.terminal).stdout += &format!("$ {trimmed}\n");
+            }
             stdin
         }
     }
