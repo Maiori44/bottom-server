@@ -71,11 +71,14 @@ impl Painter {
                         continue;
                     }
                 }
-                contents.push(Spans::from(Span::styled(line, if line.starts_with('$') {
-                    self.colours.highlighted_border_style
-                } else {
-                    self.colours.text_style
-                })));
+                contents.push(Spans::from(Span::styled(
+                    line,
+                    if line.starts_with('$') {
+                        self.colours.highlighted_border_style
+                    } else {
+                        self.colours.text_style
+                    },
+                )));
                 if contents.len() == stdout_height {
                     break;
                 }
