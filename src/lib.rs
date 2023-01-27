@@ -197,6 +197,12 @@ pub fn handle_key_event_or_break(
                             terminal_widget_state.stdout.clear();
                             terminal_widget_state.offset = 0;
                         }
+                        KeyCode::F(10) => {
+                            return handle_key_event_or_break(
+                                KeyEvent::new(KeyCode::Char('~'), event.modifiers),
+                                app, reset_sender, sender
+                            )
+                        }
                         _ => {}
                     }
                     return false;
