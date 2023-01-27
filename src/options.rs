@@ -203,6 +203,7 @@ pub fn build_app(
     let mut disk_state_map: HashMap<u64, DiskTableWidget> = HashMap::new();
     let mut battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
     let mut terminal_state_map: HashMap<u64, TerminalWidgetState> = HashMap::new();
+    let mut uptime_state_map: HashSet<u64> = HashSet::new();
 
     let autohide_timer = if autohide_time {
         Some(Instant::now())
@@ -358,6 +359,9 @@ pub fn build_app(
                         Terminal => {
                             terminal_state_map
                                 .insert(widget.widget_id, TerminalWidgetState::default());
+                        }
+                        Uptime => {
+                            uptime_state_map.insert(widget.widget_id);
                         }
                         _ => {}
                     }

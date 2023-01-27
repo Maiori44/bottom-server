@@ -200,7 +200,9 @@ pub fn handle_key_event_or_break(
                         KeyCode::F(10) => {
                             return handle_key_event_or_break(
                                 KeyEvent::new(KeyCode::Char('~'), event.modifiers),
-                                app, reset_sender, sender
+                                app,
+                                reset_sender,
+                                sender,
                             )
                         }
                         _ => {}

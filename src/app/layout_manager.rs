@@ -900,6 +900,7 @@ pub enum BottomWidgetType {
     BasicTables,
     Battery,
     Terminal,
+    Uptime,
 }
 
 impl BottomWidgetType {
@@ -924,6 +925,7 @@ impl BottomWidgetType {
             Disk => "Disks",
             Battery => "Battery",
             Terminal => "Terminal",
+            Uptime => "Uptime",
             _ => "",
         }
     }
@@ -950,6 +952,7 @@ impl std::str::FromStr for BottomWidgetType {
             "empty" => Ok(BottomWidgetType::Empty),
             "battery" | "batt" if cfg!(feature = "battery") => Ok(BottomWidgetType::Battery),
             "terminal" => Ok(BottomWidgetType::Terminal),
+            "uptime" => Ok(BottomWidgetType::Uptime),
             _ => {
                 if cfg!(feature = "battery") {
                     Err(BottomError::ConfigError(format!(
@@ -973,6 +976,8 @@ Supported widget names:
 +--------------------------+
 |         terminal         |
 +--------------------------+
+|          uptime          |
++--------------------------+
                 ",
                         s
                     )))
@@ -995,6 +1000,8 @@ Supported widget names:
 |           disk           |
 +--------------------------+
 |         terminal         |
++--------------------------+
+|          uptime          |
 +--------------------------+
                 ",
                         s
