@@ -193,6 +193,24 @@ pub fn handle_key_event_or_break(
                                 stdin.insert(stdin.len() - terminal_widget_state.input_offset, c);
                             }
                         }
+                        KeyCode::Delete => {
+                            let index = terminal_widget_state.selected_input;
+                            let Some(input) = terminal_widget_state.stdin.get_mut(index) else {
+                                return false;
+                            };
+                            if let Some(offset) = {
+                                if terminal_widget_state.input_offset == 0 {
+                                    None
+                                } else if input.len() >= terminal_widget_state.input_offset {
+                                    Some(input.len() - terminal_widget_state.input_offset)
+                                } else {
+                                    None
+                                }
+                            } {
+                                input.remove(offset);
+                                terminal_widget_state.input_offset -= 1;
+                            }
+                        }
                         KeyCode::F(9) => {
                             terminal_widget_state.stdout.clear();
                             terminal_widget_state.offset = 0;
@@ -200,9 +218,7 @@ pub fn handle_key_event_or_break(
                         KeyCode::F(10) => {
                             return handle_key_event_or_break(
                                 KeyEvent::new(KeyCode::Char('~'), event.modifiers),
-                                app,
-                                reset_sender,
-                                sender,
+                                app, reset_sender, sender
                             )
                         }
                         _ => {}
