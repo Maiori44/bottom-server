@@ -95,6 +95,7 @@ typed-builder = "0.10.0"
 unicode-segmentation = "1.10.0"
 unicode-width = "0.1.10"
 strip-ansi-escapes = "0.1.1"
+uptime_lib = "0.2.2"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.124"

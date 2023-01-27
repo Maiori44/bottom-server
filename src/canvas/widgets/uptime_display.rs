@@ -6,10 +6,43 @@ use tui::{
     widgets::{Block, Borders, Row, Table},
 };
 use unicode_segmentation::UnicodeSegmentation;
+use uptime_lib;
 
 use crate::{app::App, canvas::Painter, constants::*};
 
-//const NUMBERS: [&str; 10] = ["", "", "", "", "", "", "", "", "", ""];
+#[rustfmt::skip]
+const NUMBERS: [&str; 10] = [
+"┏━┓
+ ┃ ┃
+ ┗━┛",
+"  ┓
+   ┃
+   ┃",
+"━━┓
+ ┏━┛
+ ┗━━",
+"━━┓
+ ━━┫
+ ━━┛",
+"┃ ┃
+ ┗━┫
+   ┃",
+"┏━━
+ ┗━┓
+ ━━┛",
+"┏━━
+ ┣━┓
+ ┗━┛",
+"━━┓
+   ┃
+   ┃",
+"┏━┓
+ ┣━┫
+ ┗━┛",
+"┏━┓
+ ┗━┫
+ ━━┛"
+];
 
 impl Painter {
     pub fn draw_uptime_display<B: Backend>(
@@ -51,15 +84,38 @@ impl Painter {
         } else {
             Block::default().borders(Borders::NONE)
         };
-        let mut times = vec![
-            Row::new(["┏━┓", "a"]).style(self.colours.text_style),
-            Row::new(["┃ ┃", "b"]).style(self.colours.text_style),
-            Row::new(["┗━┛", "c"]).style(self.colours.text_style),
-        ];
+        let mut upper = String::with_capacity(6);
+        let mut middle = String::with_capacity(6);
+        let mut bottom = String::with_capacity(6);
+        let mut seconds = uptime_lib::get().unwrap().as_secs();
+        let days = seconds / 60 / 60 / 24;
+        seconds -= days * 60 * 60 * 24;
+        let hours = seconds / 60 / 60;
+        seconds -= hours * 60 * 60;
+        let minutes = seconds / 60;
+        seconds -= minutes * 60;
+        for digit in days.to_string().chars() {
+            let mut number = NUMBERS[((digit as u8) - b'0') as usize].rsplit("\n ");
+            bottom += number.next().unwrap();
+            middle += number.next().unwrap();
+            upper += number.next().unwrap();
+        }
         f.render_widget(
-            Table::new(times)
-                .block(terminal_block)
-                .widths(&[Constraint::Percentage(50), Constraint::Percentage(50)]),
+            Table::new(vec![
+                Row::new(["Days ", &upper, "Hours", &hours.to_string()])
+                    .style(self.colours.text_style),
+                Row::new(["", &middle, "Minutes", &minutes.to_string()])
+                    .style(self.colours.text_style),
+                Row::new(["", &bottom, "Seconds", &seconds.to_string()])
+                    .style(self.colours.text_style),
+            ])
+            .block(terminal_block)
+            .widths(&[
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+            ]),
             draw_loc,
         );
         /*if let Some(terminal_widget_state) =
