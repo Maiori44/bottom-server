@@ -73,9 +73,9 @@ impl UnsafeTerminalWidgetState {
     pub fn limit_output(&mut self) {
         unsafe {
             let stdout = &mut (*self.terminal).stdout;
-            if stdout.len() > 10000 {
+            if stdout.len() > 100000 {
                 let mut chars = stdout.chars();
-                for _ in 0..stdout.len() - 10000 {
+                for _ in 0..stdout.len() - 100000 {
                     chars.next();
                 }
                 (*self.terminal).stdout = chars.collect();
