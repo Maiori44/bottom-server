@@ -2,11 +2,12 @@ use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
     terminal::Frame,
-    widgets::Block,
+    widgets::{Block, Borders, Gauge}, text::{Spans, Span},
 };
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-    app::App, canvas::Painter, components::tui_widget::pipe_gauge::PipeGauge, constants::*,
+    app::App, canvas::Painter,
 };
 
 impl Painter {
@@ -14,16 +15,39 @@ impl Painter {
         &self, f: &mut Frame<'_, B>, app_state: &mut App, draw_loc: Rect, widget_id: u64,
     ) {
         let mem_data = &app_state.converted_data.mem_data;
-        let mut draw_widgets: Vec<PipeGauge<'_>> = Vec::new();
+        let mut draw_widgets: Vec<Gauge<'_>> = Vec::new();
 
-        if app_state.current_widget.widget_id == widget_id {
-            f.render_widget(
-                Block::default()
-                    .borders(SIDE_BORDERS)
-                    .border_style(self.colours.highlighted_border_style),
-                draw_loc,
-            );
-        }
+        let is_on_widget = widget_id == app_state.current_widget.widget_id;
+        let border_style = if is_on_widget {
+            self.colours.highlighted_border_style
+        } else {
+            self.colours.border_style
+        };
+        let title = if app_state.is_expanded {
+            const TITLE_BASE: &str = " Memory ── Esc to go back ";
+            Spans::from(vec![
+                Span::styled(" Memory ", self.colours.widget_title_style),
+                Span::styled(
+                    format!(
+                        "─{}─ Esc to go back ",
+                        "─".repeat(usize::from(draw_loc.width).saturating_sub(
+                            UnicodeSegmentation::graphemes(TITLE_BASE, true).count() + 2
+                        ))
+                    ),
+                    border_style,
+                ),
+            ])
+        } else {
+            Spans::from(Span::styled(" Uptime ", self.colours.widget_title_style))
+        };
+
+        f.render_widget(
+            Block::default()
+                .title(title)
+                .borders(Borders::ALL)
+                .border_style(border_style),
+            draw_loc
+        );
 
         let ram_percentage = if let Some(mem) = mem_data.last() {
             mem.1
@@ -31,25 +55,20 @@ impl Painter {
             0.0
         };
 
-        const EMPTY_MEMORY_FRAC_STRING: &str = "0.0B/0.0B";
-
         let memory_fraction_label =
             if let Some((_, label_frac)) = &app_state.converted_data.mem_labels {
-                if app_state.basic_mode_use_percent {
-                    format!("{:3.0}%", ram_percentage.round())
-                } else {
-                    label_frac.trim().to_string()
-                }
+                format!("RAM: {}% {}", ram_percentage.round(), label_frac.trim().to_string())
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
             };
 
+        const EMPTY_MEMORY_FRAC_STRING: &str = "0.0B/0.0B";
+
         draw_widgets.push(
-            PipeGauge::default()
+            Gauge::default()
                 .ratio(ram_percentage / 100.0)
-                .start_label("RAM")
-                .inner_label(memory_fraction_label)
-                .label_style(self.colours.ram_style)
+                .label(memory_fraction_label)
+                .style(self.colours.ram_style)
                 .gauge_style(self.colours.ram_style),
         );
 
@@ -62,94 +81,22 @@ impl Painter {
         };
 
         if let Some((_, label_frac)) = &app_state.converted_data.swap_labels {
-            let swap_fraction_label = if app_state.basic_mode_use_percent {
-                format!("{:3.0}%", swap_percentage.round())
-            } else {
-                label_frac.trim().to_string()
-            };
+            let swap_fraction_label =
+                format!("SWAP: {}% {}", swap_percentage.round(), label_frac.trim().to_string());
             draw_widgets.push(
-                PipeGauge::default()
+                Gauge::default()
                     .ratio(swap_percentage / 100.0)
-                    .start_label("SWP")
-                    .inner_label(swap_fraction_label)
-                    .label_style(self.colours.swap_style)
+                    .label(swap_fraction_label)
+                    .style(self.colours.swap_style)
                     .gauge_style(self.colours.swap_style),
             );
         }
 
-        #[cfg(feature = "zfs")]
-        {
-            let arc_data = &app_state.converted_data.arc_data;
-            let arc_percentage = if let Some(arc) = arc_data.last() {
-                arc.1
-            } else {
-                0.0
-            };
-            if let Some((_, label_frac)) = &app_state.converted_data.arc_labels {
-                let arc_fraction_label = if app_state.basic_mode_use_percent {
-                    format!("{:3.0}%", arc_percentage.round())
-                } else {
-                    label_frac.trim().to_string()
-                };
-                draw_widgets.push(
-                    PipeGauge::default()
-                        .ratio(arc_percentage / 100.0)
-                        .start_label("ARC")
-                        .inner_label(arc_fraction_label)
-                        .label_style(self.colours.arc_style)
-                        .gauge_style(self.colours.arc_style),
-                );
-            }
-        }
-
-        #[cfg(feature = "gpu")]
-        {
-            if let Some(gpu_data) = &app_state.converted_data.gpu_data {
-                let gpu_styles = &self.colours.gpu_colour_styles;
-                let mut color_index = 0;
-
-                gpu_data.iter().for_each(|gpu_data_vec| {
-                    let gpu_data = gpu_data_vec.points.as_slice();
-                    let gpu_percentage = if let Some(gpu) = gpu_data.last() {
-                        gpu.1
-                    } else {
-                        0.0
-                    };
-                    let trimmed_gpu_frac = {
-                        if app_state.basic_mode_use_percent {
-                            format!("{:3.0}%", gpu_percentage.round())
-                        } else {
-                            gpu_data_vec.mem_total.trim().to_string()
-                        }
-                    };
-                    let style = {
-                        if gpu_styles.is_empty() {
-                            tui::style::Style::default()
-                        } else if color_index >= gpu_styles.len() {
-                            // cycle styles
-                            color_index = 1;
-                            gpu_styles[color_index - 1]
-                        } else {
-                            color_index += 1;
-                            gpu_styles[color_index - 1]
-                        }
-                    };
-                    draw_widgets.push(
-                        PipeGauge::default()
-                            .ratio(gpu_percentage / 100.0)
-                            .start_label("GPU")
-                            .inner_label(trimmed_gpu_frac)
-                            .label_style(style)
-                            .gauge_style(style),
-                    );
-                });
-            }
-        }
-
         let margined_loc = Layout::default()
-            .constraints(vec![Constraint::Length(1); draw_widgets.len()])
+            .constraints(vec![Constraint::Length(draw_loc.height / 2); draw_widgets.len()])
             .direction(Direction::Vertical)
             .horizontal_margin(1)
+            .vertical_margin(1)
             .split(draw_loc);
 
         draw_widgets

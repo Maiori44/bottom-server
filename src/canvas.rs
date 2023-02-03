@@ -357,7 +357,7 @@ impl Painter {
                         rect[0],
                         app_state.current_widget.widget_id - 1,
                     ),
-                    Mem | BasicMem => self.draw_memory_graph(
+                    Mem | BasicMem => self.draw_basic_memory(
                         f,
                         app_state,
                         rect[0],
@@ -788,7 +788,7 @@ impl Painter {
                 match &widget.widget_type {
                     Empty => {}
                     Cpu => self.draw_cpu(f, app_state, *widget_draw_loc, widget.widget_id),
-                    Mem => self.draw_memory_graph(f, app_state, *widget_draw_loc, widget.widget_id),
+                    Mem => self.draw_basic_memory(f, app_state, *widget_draw_loc, widget.widget_id),
                     Net => self.draw_network(f, app_state, *widget_draw_loc, widget.widget_id),
                     Temp => self.draw_temp_table(f, app_state, *widget_draw_loc, widget.widget_id),
                     Disk => self.draw_disk_table(f, app_state, *widget_draw_loc, widget.widget_id),
