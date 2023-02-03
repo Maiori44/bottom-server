@@ -2,13 +2,12 @@ use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
     terminal::Frame,
-    widgets::{Block, Borders, Gauge}, text::{Spans, Span},
+    text::{Span, Spans},
+    widgets::{Block, Borders, Gauge},
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{
-    app::App, canvas::Painter,
-};
+use crate::{app::App, canvas::Painter};
 
 impl Painter {
     pub fn draw_basic_memory<B: Backend>(
@@ -46,7 +45,7 @@ impl Painter {
                 .title(title)
                 .borders(Borders::ALL)
                 .border_style(border_style),
-            draw_loc
+            draw_loc,
         );
 
         let ram_percentage = if let Some(mem) = mem_data.last() {
@@ -57,7 +56,11 @@ impl Painter {
 
         let memory_fraction_label =
             if let Some((_, label_frac)) = &app_state.converted_data.mem_labels {
-                format!("RAM: {}% {}", ram_percentage.round(), label_frac.trim().to_string())
+                format!(
+                    "RAM: {}% {}",
+                    ram_percentage.round(),
+                    label_frac.trim().to_string()
+                )
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
             };
@@ -81,8 +84,11 @@ impl Painter {
         };
 
         if let Some((_, label_frac)) = &app_state.converted_data.swap_labels {
-            let swap_fraction_label =
-                format!("SWAP: {}% {}", swap_percentage.round(), label_frac.trim().to_string());
+            let swap_fraction_label = format!(
+                "SWAP: {}% {}",
+                swap_percentage.round(),
+                label_frac.trim().to_string()
+            );
             draw_widgets.push(
                 Gauge::default()
                     .ratio(swap_percentage / 100.0)
@@ -93,7 +99,10 @@ impl Painter {
         }
 
         let margined_loc = Layout::default()
-            .constraints(vec![Constraint::Length(draw_loc.height / 2); draw_widgets.len()])
+            .constraints(vec![
+                Constraint::Length(draw_loc.height / 2);
+                draw_widgets.len()
+            ])
             .direction(Direction::Vertical)
             .horizontal_margin(1)
             .vertical_margin(1)
