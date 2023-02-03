@@ -37,7 +37,7 @@ impl Painter {
                 ),
             ])
         } else {
-            Spans::from(Span::styled(" Uptime ", self.colours.widget_title_style))
+            Spans::from(Span::styled(" Memory ", self.colours.widget_title_style))
         };
 
         f.render_widget(
