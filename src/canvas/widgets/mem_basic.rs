@@ -59,7 +59,7 @@ impl Painter {
                 format!(
                     "RAM: {}% {}",
                     ram_percentage.round(),
-                    label_frac.trim().to_string()
+                    label_frac.trim()
                 )
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
@@ -87,7 +87,7 @@ impl Painter {
             let swap_fraction_label = format!(
                 "SWAP: {}% {}",
                 swap_percentage.round(),
-                label_frac.trim().to_string()
+                label_frac.trim()
             );
             draw_widgets.push(
                 Gauge::default()
