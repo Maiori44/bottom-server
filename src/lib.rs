@@ -6,6 +6,7 @@
 //! bottom, refer to [here](https://clementtsang.github.io/bottom/stable/).
 
 #![warn(rust_2018_idioms)]
+#![allow(clippy::uninlined_format_args)]
 #[allow(unused_imports)]
 #[cfg(feature = "log")]
 #[macro_use]
@@ -320,9 +321,9 @@ pub fn handle_key_event_or_break(
     false
 }
 
-pub fn read_config(config_location: Option<&str>) -> error::Result<Option<PathBuf>> {
+pub fn read_config(config_location: Option<&String>) -> error::Result<Option<PathBuf>> {
     let config_path = if let Some(conf_loc) = config_location {
-        Some(PathBuf::from(conf_loc))
+        Some(PathBuf::from(conf_loc.as_str()))
     } else if cfg!(target_os = "windows") {
         if let Some(home_path) = dirs::config_dir() {
             let mut path = home_path;
