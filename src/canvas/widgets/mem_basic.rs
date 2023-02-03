@@ -56,11 +56,7 @@ impl Painter {
 
         let memory_fraction_label =
             if let Some((_, label_frac)) = &app_state.converted_data.mem_labels {
-                format!(
-                    "RAM: {}% {}",
-                    ram_percentage.round(),
-                    label_frac.trim()
-                )
+                format!("RAM: {}% {}", ram_percentage.round(), label_frac.trim())
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
             };
@@ -84,11 +80,8 @@ impl Painter {
         };
 
         if let Some((_, label_frac)) = &app_state.converted_data.swap_labels {
-            let swap_fraction_label = format!(
-                "SWAP: {}% {}",
-                swap_percentage.round(),
-                label_frac.trim()
-            );
+            let swap_fraction_label =
+                format!("SWAP: {}% {}", swap_percentage.round(), label_frac.trim());
             draw_widgets.push(
                 Gauge::default()
                     .ratio(swap_percentage / 100.0)
