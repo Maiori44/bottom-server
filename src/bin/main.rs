@@ -254,10 +254,11 @@ fn main() -> Result<()> {
                                 app.converted_data.gpu_data =
                                     convert_gpu_data(&app.data_collection);
                             }
-                            let (memory_labels, swap_labels) =
+                            let (memory_labels, cache_label, swap_labels) =
                                 convert_mem_labels(&app.data_collection);
 
                             app.converted_data.mem_labels = memory_labels;
+                            app.converted_data.cache_label = cache_label;
                             app.converted_data.swap_labels = swap_labels;
                             #[cfg(feature = "zfs")]
                             {

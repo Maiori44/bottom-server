@@ -1,3 +1,5 @@
+use std::{fs::File, io::{BufReader, BufRead}};
+
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -7,7 +9,7 @@ use tui::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{app::App, canvas::Painter};
+use crate::{app::App, canvas::Painter, data_conversion::convert_mem_labels};
 
 impl Painter {
     pub fn draw_basic_memory<B: Backend>(
@@ -66,10 +68,12 @@ impl Painter {
                 .gauge_style(self.colours.ram_style),
         );
 
+
+
         draw_widgets.push(
             Gauge::default()
                 .ratio(ram_percentage / 100.0)
-                .label("CACHE")
+                .label(app_state.converted_data.cache_label.trim())
                 .style(self.colours.medium_battery_colour)
                 .gauge_style(self.colours.medium_battery_colour),
         );

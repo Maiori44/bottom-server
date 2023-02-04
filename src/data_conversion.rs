@@ -1,6 +1,8 @@
 //! This mainly concerns converting collected data into things that the canvas
 //! can actually handle.
 
+use std::{fs::File, io::{BufReader, BufRead}};
+
 use kstring::KString;
 
 use crate::app::{
@@ -73,6 +75,7 @@ pub struct ConvertedData {
     pub network_data_tx: Vec<Point>,
 
     pub mem_labels: Option<(String, String)>,
+    pub cache_label: String,
     pub swap_labels: Option<(String, String)>,
 
     pub mem_data: MemHarvest,
@@ -207,7 +210,7 @@ impl ConvertedData {
 
 pub fn convert_mem_labels(
     current_data: &DataCollection,
-) -> (Option<(String, String)>, Option<(String, String)>) {
+) -> (Option<(String, String)>, String, Option<(String, String)>) {
     /// Returns the unit type and denominator for given total amount of memory in kibibytes.
     fn return_unit_and_denominator_for_mem_kib(mem_total_kib: u64) -> (&'static str, f64) {
         if mem_total_kib < 1024 {
@@ -248,6 +251,38 @@ pub fn convert_mem_labels(
             ))
         } else {
             None
+        },
+        {
+            let used_cache = {
+                let meminfo = File::open("/proc/meminfo").unwrap();
+                let mut reader = BufReader::new(meminfo);
+                let mut line = String::new();
+                loop {
+                    if reader.read_line(&mut line).is_err() {
+                        break 0.0
+                    }
+                    if line.starts_with("Cached:") {
+                        break line
+                            .split_whitespace()
+                            .nth(1).unwrap()
+                            .parse::<f64>()
+                            .unwrap() * 1.024;
+                    }
+                    line.clear()
+                }
+            };
+
+            let (unit, denominator) = return_unit_and_denominator_for_mem_kib(
+                current_data.memory_harvest.mem_total_in_kib,
+            );
+
+            format!(
+                "   {:.1}{}/{:.1}{}",
+                used_cache as f64 / denominator,
+                unit,
+                (current_data.memory_harvest.mem_total_in_kib as f64 / denominator),
+                unit
+            )
         },
         if current_data.swap_harvest.mem_total_in_kib > 0 {
             Some((
