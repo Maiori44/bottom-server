@@ -213,7 +213,11 @@ impl ConvertedData {
 
 pub fn convert_mem_labels(
     current_data: &DataCollection,
-) -> (Option<(String, String)>, (f64, String), Option<(String, String)>) {
+) -> (
+    Option<(String, String)>,
+    (f64, String),
+    Option<(String, String)>,
+) {
     /// Returns the unit type and denominator for given total amount of memory in kibibytes.
     fn return_unit_and_denominator_for_mem_kib(mem_total_kib: u64) -> (&'static str, f64) {
         if mem_total_kib < 1024 {
@@ -289,7 +293,7 @@ pub fn convert_mem_labels(
                     unit,
                     (current_data.memory_harvest.mem_total_in_kib as f64 / denominator),
                     unit
-                )
+                ),
             )
         },
         if current_data.swap_harvest.mem_total_in_kib > 0 {
