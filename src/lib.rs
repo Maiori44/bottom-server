@@ -503,8 +503,8 @@ pub fn update_data(app: &mut App) {
 
     // TODO: [OPT] Prefer reassignment over new vectors?
     if app.mem_state.force_update.is_some() {
-        app.converted_data.mem_data = convert_mem_data_points(data_source);
-        app.converted_data.swap_data = convert_swap_data_points(data_source);
+        app.converted_data.mem_data = data_source.memory_harvest.clone();
+        app.converted_data.swap_data = data_source.swap_harvest.clone();
         #[cfg(feature = "zfs")]
         {
             app.converted_data.arc_data = convert_arc_data_points(data_source);

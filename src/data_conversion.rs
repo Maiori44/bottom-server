@@ -5,7 +5,7 @@ use kstring::KString;
 
 use crate::app::{
     data_farmer::DataCollection,
-    data_harvester::{cpu::CpuDataType, temperature::TemperatureType},
+    data_harvester::{cpu::CpuDataType, temperature::TemperatureType, memory::MemHarvest},
     AxisScaling,
 };
 use crate::components::tui_widget::time_chart::Point;
@@ -75,8 +75,8 @@ pub struct ConvertedData {
     pub mem_labels: Option<(String, String)>,
     pub swap_labels: Option<(String, String)>,
 
-    pub mem_data: Vec<Point>, /* TODO: Switch this and all data points over to a better data structure... */
-    pub swap_data: Vec<Point>,
+    pub mem_data: MemHarvest,
+    pub swap_data: MemHarvest,
 
     #[cfg(feature = "zfs")]
     pub arc_labels: Option<(String, String)>,
@@ -203,42 +203,6 @@ impl ConvertedData {
             }
         }
     }
-}
-
-pub fn convert_mem_data_points(current_data: &DataCollection) -> Vec<Point> {
-    let mut result: Vec<Point> = Vec::new();
-    let current_time = current_data.current_instant;
-
-    for (time, data) in &current_data.timed_data_vec {
-        if let Some(mem_data) = data.mem_data {
-            let time_from_start: f64 =
-                (current_time.duration_since(*time).as_millis() as f64).floor();
-            result.push((-time_from_start, mem_data));
-            if *time == current_time {
-                break;
-            }
-        }
-    }
-
-    result
-}
-
-pub fn convert_swap_data_points(current_data: &DataCollection) -> Vec<Point> {
-    let mut result: Vec<Point> = Vec::new();
-    let current_time = current_data.current_instant;
-
-    for (time, data) in &current_data.timed_data_vec {
-        if let Some(swap_data) = data.swap_data {
-            let time_from_start: f64 =
-                (current_time.duration_since(*time).as_millis() as f64).floor();
-            result.push((-time_from_start, swap_data));
-            if *time == current_time {
-                break;
-            }
-        }
-    }
-
-    result
 }
 
 pub fn convert_mem_labels(

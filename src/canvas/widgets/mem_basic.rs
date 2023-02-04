@@ -13,7 +13,6 @@ impl Painter {
     pub fn draw_basic_memory<B: Backend>(
         &self, f: &mut Frame<'_, B>, app_state: &mut App, draw_loc: Rect, widget_id: u64,
     ) {
-        let mem_data = &app_state.converted_data.mem_data;
         let mut draw_widgets: Vec<Gauge<'_>> = Vec::new();
 
         let is_on_widget = widget_id == app_state.current_widget.widget_id;
@@ -48,15 +47,11 @@ impl Painter {
             draw_loc,
         );
 
-        let ram_percentage = if let Some(mem) = mem_data.last() {
-            mem.1
-        } else {
-            0.0
-        };
+        let ram_percentage = app_state.converted_data.mem_data.use_percent.unwrap_or(0.0);
 
         let memory_fraction_label =
             if let Some((_, label_frac)) = &app_state.converted_data.mem_labels {
-                format!("RAM: {}% {}", ram_percentage.round(), label_frac.trim())
+                format!("RAM: {}% {}", (ram_percentage * 100.0).round() / 100.0, label_frac.trim())
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
             };
@@ -71,17 +66,19 @@ impl Painter {
                 .gauge_style(self.colours.ram_style),
         );
 
-        let swap_data = &app_state.converted_data.swap_data;
+        draw_widgets.push(
+            Gauge::default()
+                .ratio(ram_percentage / 100.0)
+                .label("CACHE")
+                .style(self.colours.medium_battery_colour)
+                .gauge_style(self.colours.medium_battery_colour),
+        );
 
-        let swap_percentage = if let Some(swap) = swap_data.last() {
-            swap.1
-        } else {
-            0.0
-        };
+        let swap_percentage = app_state.converted_data.swap_data.use_percent.unwrap_or(0.0);
 
         if let Some((_, label_frac)) = &app_state.converted_data.swap_labels {
             let swap_fraction_label =
-                format!("SWAP: {}% {}", swap_percentage.round(), label_frac.trim());
+                format!("SWAP: {}% {}", (swap_percentage * 100.0).round() / 100.0, label_frac.trim());
             draw_widgets.push(
                 Gauge::default()
                     .ratio(swap_percentage / 100.0)
@@ -93,7 +90,7 @@ impl Painter {
 
         let margined_loc = Layout::default()
             .constraints(vec![
-                Constraint::Length(draw_loc.height / 2);
+                Constraint::Length(draw_loc.height / 3);
                 draw_widgets.len()
             ])
             .direction(Direction::Vertical)

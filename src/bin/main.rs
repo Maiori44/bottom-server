@@ -241,10 +241,9 @@ fn main() -> Result<()> {
 
                         // Memory
                         if app.used_widgets.use_mem {
-                            app.converted_data.mem_data =
-                                convert_mem_data_points(&app.data_collection);
-                            app.converted_data.swap_data =
-                                convert_swap_data_points(&app.data_collection);
+                            app.converted_data.mem_data = app.data_collection.memory_harvest.clone();
+                            app.converted_data.swap_data = app.data_collection.swap_harvest.clone();
+
                             #[cfg(feature = "zfs")]
                             {
                                 app.converted_data.arc_data =
