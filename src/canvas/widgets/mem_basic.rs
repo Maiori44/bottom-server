@@ -72,8 +72,12 @@ impl Painter {
 
         draw_widgets.push(
             Gauge::default()
-                .ratio(ram_percentage / 100.0)
-                .label(app_state.converted_data.cache_label.trim())
+                .ratio(app_state.converted_data.cache_label.0)
+                .label(format!(
+                    "CACHE: {}% {}",
+                    (app_state.converted_data.cache_label.0 * 10000.0).round() / 100.0,
+                    app_state.converted_data.cache_label.1
+                ))
                 .style(self.colours.medium_battery_colour)
                 .gauge_style(self.colours.medium_battery_colour),
         );
