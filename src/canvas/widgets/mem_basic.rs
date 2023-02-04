@@ -76,7 +76,7 @@ impl Painter {
                 .label(format!(
                     "CACHE: {}% {}",
                     (app_state.converted_data.cache_label.0 * 10000.0).round() / 100.0,
-                    app_state.converted_data.cache_label.1
+                    app_state.converted_data.cache_label.1.trim()
                 ))
                 .style(self.colours.medium_battery_colour)
                 .gauge_style(self.colours.medium_battery_colour),
