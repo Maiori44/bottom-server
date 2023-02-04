@@ -308,7 +308,7 @@ pub fn convert_mem_labels(
                     );
 
                     format!(
-                        "   {:.1}{}/{:.1}{}",
+                        "{:.1}{}/{:.1}{}",
                         current_data.swap_harvest.mem_used_in_kib as f64 / denominator,
                         unit,
                         (current_data.swap_harvest.mem_total_in_kib as f64 / denominator),
