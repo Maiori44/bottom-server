@@ -1,13 +1,16 @@
 //! This mainly concerns converting collected data into things that the canvas
 //! can actually handle.
 
-use std::{fs::File, io::{BufReader, BufRead}};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
 use kstring::KString;
 
 use crate::app::{
     data_farmer::DataCollection,
-    data_harvester::{cpu::CpuDataType, temperature::TemperatureType, memory::MemHarvest},
+    data_harvester::{cpu::CpuDataType, memory::MemHarvest, temperature::TemperatureType},
     AxisScaling,
 };
 use crate::components::tui_widget::time_chart::Point;
@@ -259,14 +262,16 @@ pub fn convert_mem_labels(
                 let mut line = String::new();
                 loop {
                     if reader.read_line(&mut line).is_err() {
-                        break 0.0
+                        break 0.0;
                     }
                     if line.starts_with("Cached:") {
                         break line
                             .split_whitespace()
-                            .nth(1).unwrap()
+                            .nth(1)
+                            .unwrap()
                             .parse::<f64>()
-                            .unwrap() * 1.024;
+                            .unwrap()
+                            * 1.024;
                     }
                     line.clear()
                 }
@@ -278,7 +283,7 @@ pub fn convert_mem_labels(
 
             format!(
                 "   {:.1}{}/{:.1}{}",
-                used_cache as f64 / denominator,
+                used_cache / denominator,
                 unit,
                 (current_data.memory_harvest.mem_total_in_kib as f64 / denominator),
                 unit

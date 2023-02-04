@@ -1,5 +1,3 @@
-use std::{fs::File, io::{BufReader, BufRead}};
-
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -9,7 +7,7 @@ use tui::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{app::App, canvas::Painter, data_conversion::convert_mem_labels};
+use crate::{app::App, canvas::Painter};
 
 impl Painter {
     pub fn draw_basic_memory<B: Backend>(
@@ -53,7 +51,11 @@ impl Painter {
 
         let memory_fraction_label =
             if let Some((_, label_frac)) = &app_state.converted_data.mem_labels {
-                format!("RAM: {}% {}", (ram_percentage * 100.0).round() / 100.0, label_frac.trim())
+                format!(
+                    "RAM: {}% {}",
+                    (ram_percentage * 100.0).round() / 100.0,
+                    label_frac.trim()
+                )
             } else {
                 EMPTY_MEMORY_FRAC_STRING.to_string()
             };
@@ -68,8 +70,6 @@ impl Painter {
                 .gauge_style(self.colours.ram_style),
         );
 
-
-
         draw_widgets.push(
             Gauge::default()
                 .ratio(ram_percentage / 100.0)
@@ -78,11 +78,18 @@ impl Painter {
                 .gauge_style(self.colours.medium_battery_colour),
         );
 
-        let swap_percentage = app_state.converted_data.swap_data.use_percent.unwrap_or(0.0);
+        let swap_percentage = app_state
+            .converted_data
+            .swap_data
+            .use_percent
+            .unwrap_or(0.0);
 
         if let Some((_, label_frac)) = &app_state.converted_data.swap_labels {
-            let swap_fraction_label =
-                format!("SWAP: {}% {}", (swap_percentage * 100.0).round() / 100.0, label_frac.trim());
+            let swap_fraction_label = format!(
+                "SWAP: {}% {}",
+                (swap_percentage * 100.0).round() / 100.0,
+                label_frac.trim()
+            );
             draw_widgets.push(
                 Gauge::default()
                     .ratio(swap_percentage / 100.0)

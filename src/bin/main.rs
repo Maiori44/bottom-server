@@ -241,7 +241,8 @@ fn main() -> Result<()> {
 
                         // Memory
                         if app.used_widgets.use_mem {
-                            app.converted_data.mem_data = app.data_collection.memory_harvest.clone();
+                            app.converted_data.mem_data =
+                                app.data_collection.memory_harvest.clone();
                             app.converted_data.swap_data = app.data_collection.swap_harvest.clone();
 
                             #[cfg(feature = "zfs")]
