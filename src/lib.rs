@@ -526,6 +526,7 @@ pub fn update_data(app: &mut App) {
                                 status,
                             })
                         }
+                        data.reverse();
                         connections.ingest_data(&data);
                         connections.collector = None;
                     }
