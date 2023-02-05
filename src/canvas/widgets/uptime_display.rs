@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use tui::{
     backend::Backend,
     layout::{Constraint, Rect},
@@ -100,6 +102,22 @@ impl Painter {
             middle += number.next().unwrap();
             upper += number.next().unwrap();
         }
+        let streak = app_state
+            .uptime_state
+            .get_widget_state(widget_id)
+            .unwrap()
+            .streak;
+        if days > streak {
+            app_state
+                .uptime_state
+                .get_mut_widget_state(widget_id)
+                .unwrap()
+                .streak = days;
+            File::create("/home/felix/.config/bottom/days")
+                .unwrap()
+                .write_all(days.to_string().as_bytes())
+                .unwrap();
+        }
         f.render_widget(
             Table::new(vec![
                 Row::new(["Days ", &upper, "Hours", &hours.to_string()])
@@ -108,6 +126,7 @@ impl Painter {
                     .style(self.colours.text_style),
                 Row::new(["", &bottom, "Seconds", &seconds.to_string()])
                     .style(self.colours.text_style),
+                Row::new(["Longest streak", &format!("{streak} days"), "", ""]),
             ])
             .block(terminal_block)
             .widths(&[

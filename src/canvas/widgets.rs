@@ -1,5 +1,6 @@
 pub mod basic_table_arrows;
 pub mod battery_display;
+pub mod connections_table;
 pub mod cpu_basic;
 pub mod cpu_graph;
 pub mod disk_table;

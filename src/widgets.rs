@@ -21,3 +21,9 @@ pub use battery_widget::*;
 
 pub mod terminal_widget;
 pub use terminal_widget::*;
+
+pub mod uptime_widget;
+pub use uptime_widget::*;
+
+pub mod connections_table;
+pub use connections_table::*;

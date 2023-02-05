@@ -144,6 +144,8 @@ pub struct App {
     pub disk_state: DiskState,
     pub battery_state: BatteryState,
     pub terminal_state: TerminalState,
+    pub uptime_state: UptimeState,
+    pub connections_state: ConnectionsState,
     pub basic_table_widget_state: Option<BasicTableWidgetState>,
     pub app_config_fields: AppConfigFields,
     pub widget_map: HashMap<u64, BottomWidget>,
@@ -1416,6 +1418,7 @@ impl App {
                         | BottomWidgetType::ProcSort
                         | BottomWidgetType::Disk
                         | BottomWidgetType::Battery
+                        | BottomWidgetType::Connections
                             if self.basic_table_widget_state.is_some()
                                 && (*direction == WidgetDirection::Left
                                     || *direction == WidgetDirection::Right) =>
@@ -1875,6 +1878,14 @@ impl App {
                         cpu_widget_state.table.set_first();
                     }
                 }
+                BottomWidgetType::Connections => {
+                    if let Some(connections_widget_state) = self
+                        .connections_state
+                        .get_mut_widget_state(self.current_widget.widget_id)
+                    {
+                        connections_widget_state.table.set_first();
+                    }
+                }
 
                 _ => {}
             }
@@ -1931,6 +1942,14 @@ impl App {
                         cpu_widget_state.table.set_last();
                     }
                 }
+                BottomWidgetType::Connections => {
+                    if let Some(connections_widget_state) = self
+                        .connections_state
+                        .get_mut_widget_state(self.current_widget.widget_id)
+                    {
+                        connections_widget_state.table.set_last();
+                    }
+                }
                 _ => {}
             }
             self.reset_multi_tap_keys();
@@ -1960,6 +1979,7 @@ impl App {
                 BottomWidgetType::Temp => self.change_temp_position(amount),
                 BottomWidgetType::Disk => self.change_disk_position(amount),
                 BottomWidgetType::CpuLegend => self.change_cpu_legend_position(amount),
+                BottomWidgetType::Connections => self.change_connections_position(amount),
                 _ => {}
             }
         }
@@ -2015,6 +2035,18 @@ impl App {
             .get_mut(&self.current_widget.widget_id)
         {
             disk_widget_state.table.increment_position(num_to_change_by);
+        }
+    }
+
+    fn change_connections_position(&mut self, num_to_change_by: i64) {
+        if let Some(connections_widget_state) = self
+            .connections_state
+            .widget_states
+            .get_mut(&self.current_widget.widget_id)
+        {
+            connections_widget_state
+                .table
+                .increment_position(num_to_change_by);
         }
     }
 
@@ -2425,7 +2457,8 @@ impl App {
                             | BottomWidgetType::Proc
                             | BottomWidgetType::ProcSort
                             | BottomWidgetType::Disk
-                            | BottomWidgetType::Battery => {
+                            | BottomWidgetType::Battery
+                            | BottomWidgetType::Connections => {
                                 if let Some(basic_table_widget_state) =
                                     &mut self.basic_table_widget_state
                                 {
@@ -2463,7 +2496,8 @@ impl App {
                     | BottomWidgetType::ProcSort
                     | BottomWidgetType::CpuLegend
                     | BottomWidgetType::Temp
-                    | BottomWidgetType::Disk => {
+                    | BottomWidgetType::Disk
+                    | BottomWidgetType::Connections => {
                         // Get our index...
                         let clicked_entry = y - *tlc_y;
                         let header_offset = self.header_offset(&self.current_widget);
@@ -2554,6 +2588,20 @@ impl App {
                                         }
                                     }
                                 }
+                                BottomWidgetType::Connections => {
+                                    if let Some(connections_widget_state) = self
+                                        .connections_state
+                                        .get_widget_state(self.current_widget.widget_id)
+                                    {
+                                        if let Some(visual_index) =
+                                            connections_widget_state.table.tui_selected()
+                                        {
+                                            self.change_connections_position(
+                                                offset_clicked_entry as i64 - visual_index as i64,
+                                            );
+                                        }
+                                    }
+                                }
                                 _ => {}
                             }
                         } else {
@@ -2589,6 +2637,14 @@ impl App {
                                             if disk.table.try_select_location(x, y).is_some() {
                                                 disk.force_data_update();
                                             }
+                                        }
+                                    }
+                                    BottomWidgetType::Connections => {
+                                        if let Some(connections) = self
+                                            .connections_state
+                                            .get_mut_widget_state(self.current_widget.widget_id)
+                                        {
+                                            connections.table.try_select_location(x, y).unwrap();
                                         }
                                     }
                                     _ => (),

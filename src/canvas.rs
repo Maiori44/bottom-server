@@ -413,6 +413,12 @@ impl Painter {
                         true,
                         app_state.current_widget.widget_id,
                     ),
+                    Connections => self.draw_connections_table(
+                        f,
+                        app_state,
+                        rect[0],
+                        app_state.current_widget.widget_id,
+                    ),
                     _ => {}
                 }
             } else if app_state.app_config_fields.use_basic_mode {
@@ -818,6 +824,12 @@ impl Painter {
                         app_state,
                         *widget_draw_loc,
                         true,
+                        widget.widget_id,
+                    ),
+                    Connections => self.draw_connections_table(
+                        f,
+                        app_state,
+                        *widget_draw_loc,
                         widget.widget_id,
                     ),
                     _ => {}
