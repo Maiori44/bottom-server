@@ -70,18 +70,6 @@ impl Painter {
                 .gauge_style(self.colours.ram_style),
         );
 
-        draw_widgets.push(
-            Gauge::default()
-                .ratio(app_state.converted_data.cache_label.0)
-                .label(format!(
-                    "CACHE: {}% {}",
-                    (app_state.converted_data.cache_label.0 * 10000.0).round() / 100.0,
-                    app_state.converted_data.cache_label.1.trim()
-                ))
-                .style(self.colours.medium_battery_colour)
-                .gauge_style(self.colours.medium_battery_colour),
-        );
-
         let swap_percentage = app_state
             .converted_data
             .swap_data
@@ -105,7 +93,7 @@ impl Painter {
 
         let margined_loc = Layout::default()
             .constraints(vec![
-                Constraint::Length(draw_loc.height / 3);
+                Constraint::Length(draw_loc.height / 2);
                 draw_widgets.len()
             ])
             .direction(Direction::Vertical)
