@@ -92,10 +92,7 @@ impl Painter {
         }
 
         let margined_loc = Layout::default()
-            .constraints(vec![
-                Constraint::Length(1);
-                draw_widgets.len()
-            ])
+            .constraints(vec![Constraint::Length(1); draw_widgets.len()])
             .direction(Direction::Vertical)
             .horizontal_margin(1)
             .vertical_margin(1)
