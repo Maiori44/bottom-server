@@ -504,7 +504,7 @@ pub fn update_data(app: &mut App) {
         for connections in app.connections_state.widget_states.values_mut() {
             match connections.collector.as_mut() {
                 Some(collector) => {
-                    if let Ok(_) = collector.try_wait() {
+                    if collector.try_wait().is_ok() {
                         let mut data = Vec::new();
                         let mut stdout = String::new();
                         collector

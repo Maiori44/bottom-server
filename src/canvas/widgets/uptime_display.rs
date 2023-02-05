@@ -115,7 +115,7 @@ impl Painter {
                 .streak = days;
             File::create("/home/felix/.config/bottom/days")
                 .unwrap()
-                .write(days.to_string().as_bytes())
+                .write_all(days.to_string().as_bytes())
                 .unwrap();
         }
         f.render_widget(

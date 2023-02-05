@@ -15,7 +15,7 @@ impl Default for UptimeWidgetState {
                 let mut days = String::new();
                 io::stdin().read_line(&mut days).unwrap();
                 days.pop();
-                file.write(days.as_bytes()).unwrap();
+                file.write_all(days.as_bytes()).unwrap();
                 days
             });
         Self {
