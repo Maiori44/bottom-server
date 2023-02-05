@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
-cd ~/bottom-server
+cd home/felix/bottom-server
 git fetch && git pull && cargo install --path=.
