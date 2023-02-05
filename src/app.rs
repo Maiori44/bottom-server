@@ -144,6 +144,7 @@ pub struct App {
     pub disk_state: DiskState,
     pub battery_state: BatteryState,
     pub terminal_state: TerminalState,
+    pub uptime_state: UptimeState,
     pub basic_table_widget_state: Option<BasicTableWidgetState>,
     pub app_config_fields: AppConfigFields,
     pub widget_map: HashMap<u64, BottomWidget>,

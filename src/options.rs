@@ -24,7 +24,7 @@ use crate::{
     utils::error::{self, BottomError},
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidgetMode, ProcWidgetState, TempWidgetState, TerminalWidgetState,
+        ProcWidgetMode, ProcWidgetState, TempWidgetState, TerminalWidgetState, UptimeWidgetState,
     },
 };
 
@@ -203,7 +203,7 @@ pub fn build_app(
     let mut disk_state_map: HashMap<u64, DiskTableWidget> = HashMap::new();
     let mut battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
     let mut terminal_state_map: HashMap<u64, TerminalWidgetState> = HashMap::new();
-    let mut uptime_state_map: HashSet<u64> = HashSet::new();
+    let mut uptime_state_map: HashMap<u64, UptimeWidgetState> = HashMap::new();
 
     let autohide_timer = if autohide_time {
         Some(Instant::now())
@@ -361,7 +361,8 @@ pub fn build_app(
                                 .insert(widget.widget_id, TerminalWidgetState::default());
                         }
                         Uptime => {
-                            uptime_state_map.insert(widget.widget_id);
+                            uptime_state_map
+                                .insert(widget.widget_id, UptimeWidgetState::default());
                         }
                         _ => {}
                     }
@@ -429,6 +430,7 @@ pub fn build_app(
         .temp_state(TempState::init(temp_state_map))
         .battery_state(BatteryState::init(battery_state_map))
         .terminal_state(TerminalState::init(terminal_state_map))
+        .uptime_state(UptimeState::init(uptime_state_map))
         .basic_table_widget_state(basic_table_widget_state)
         .current_widget(widget_map.get(&initial_widget_id).unwrap().clone()) // TODO: [UNWRAP] - many of the unwraps are fine (like this one) but do a once-over and/or switch to expect?
         .widget_map(widget_map)
