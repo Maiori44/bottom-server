@@ -830,7 +830,7 @@ impl Painter {
                         f,
                         app_state,
                         *widget_draw_loc,
-                        widget.widget_id
+                        widget.widget_id,
                     ),
                     _ => {}
                 }

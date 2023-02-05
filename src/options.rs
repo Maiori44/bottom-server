@@ -23,8 +23,9 @@ use crate::{
     units::data_units::DataUnit,
     utils::error::{self, BottomError},
     widgets::{
-        BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidgetMode, ProcWidgetState, TempWidgetState, TerminalWidgetState, UptimeWidgetState, ConnectionsWidgetState,
+        BatteryWidgetState, ConnectionsWidgetState, CpuWidgetState, DiskTableWidget,
+        MemWidgetState, NetWidgetState, ProcWidgetMode, ProcWidgetState, TempWidgetState,
+        TerminalWidgetState, UptimeWidgetState,
     },
 };
 
@@ -362,8 +363,7 @@ pub fn build_app(
                                 .insert(widget.widget_id, TerminalWidgetState::default());
                         }
                         Uptime => {
-                            uptime_state_map
-                                .insert(widget.widget_id, UptimeWidgetState::default());
+                            uptime_state_map.insert(widget.widget_id, UptimeWidgetState::default());
                         }
                         Connections => {
                             connection_state_map.insert(

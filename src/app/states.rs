@@ -8,8 +8,9 @@ use crate::{
     constants,
     utils::gen_util::str_width,
     widgets::{
-        BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidgetState, TempWidgetState, TerminalWidgetState, UptimeWidgetState, ConnectionsWidgetState,
+        BatteryWidgetState, ConnectionsWidgetState, CpuWidgetState, DiskTableWidget,
+        MemWidgetState, NetWidgetState, ProcWidgetState, TempWidgetState, TerminalWidgetState,
+        UptimeWidgetState,
     },
 };
 

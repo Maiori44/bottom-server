@@ -2044,7 +2044,9 @@ impl App {
             .widget_states
             .get_mut(&self.current_widget.widget_id)
         {
-            connections_widget_state.table.increment_position(num_to_change_by);
+            connections_widget_state
+                .table
+                .increment_position(num_to_change_by);
         }
     }
 

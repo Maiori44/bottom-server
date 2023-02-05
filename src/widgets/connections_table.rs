@@ -39,17 +39,22 @@ impl ColumnHeader for ConnectionsWidgetColumn {
 }
 
 impl DataToCell<ConnectionsWidgetColumn> for ConnectionsWidgetData {
-    fn to_cell<'a>(&'a self, column: &ConnectionsWidgetColumn, calculated_width: u16) -> Option<Text<'a>> {
+    fn to_cell<'a>(
+        &'a self, column: &ConnectionsWidgetColumn, calculated_width: u16,
+    ) -> Option<Text<'a>> {
         if calculated_width == 0 {
             return None;
         }
 
-        Some(truncate_to_text(match column {
-            ConnectionsWidgetColumn::Name => &self.name,
-            ConnectionsWidgetColumn::LocalAddress => &self.local_address,
-            ConnectionsWidgetColumn::RemoteAddress => &self.remote_address,
-            ConnectionsWidgetColumn::Status => &self.status
-        }, calculated_width))
+        Some(truncate_to_text(
+            match column {
+                ConnectionsWidgetColumn::Name => &self.name,
+                ConnectionsWidgetColumn::LocalAddress => &self.local_address,
+                ConnectionsWidgetColumn::RemoteAddress => &self.remote_address,
+                ConnectionsWidgetColumn::Status => &self.status,
+            },
+            calculated_width,
+        ))
     }
 
     fn column_widths<C: DataTableColumn<ConnectionsWidgetColumn>>(
@@ -80,10 +85,14 @@ impl SortsRow for ConnectionsWidgetColumn {
                 data.sort_by(move |a, b| sort_partial_fn(descending)(&a.name, &b.name));
             }
             ConnectionsWidgetColumn::LocalAddress => {
-                data.sort_by(move |a, b| sort_partial_fn(descending)(&a.local_address, &b.local_address));
+                data.sort_by(move |a, b| {
+                    sort_partial_fn(descending)(&a.local_address, &b.local_address)
+                });
             }
             ConnectionsWidgetColumn::RemoteAddress => {
-                data.sort_by(move |a, b| sort_partial_fn(descending)(&a.remote_address, &b.remote_address));
+                data.sort_by(move |a, b| {
+                    sort_partial_fn(descending)(&a.remote_address, &b.remote_address)
+                });
             }
             ConnectionsWidgetColumn::Status => {
                 data.sort_by(move |a, b| sort_partial_fn(descending)(&a.status, &b.status));
@@ -94,7 +103,7 @@ impl SortsRow for ConnectionsWidgetColumn {
 
 pub struct ConnectionsWidgetState {
     pub table: SortDataTable<ConnectionsWidgetData, ConnectionsWidgetColumn>,
-    pub collector: Option<Child>
+    pub collector: Option<Child>,
 }
 
 impl ConnectionsWidgetState {

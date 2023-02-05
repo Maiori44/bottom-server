@@ -102,9 +102,17 @@ impl Painter {
             middle += number.next().unwrap();
             upper += number.next().unwrap();
         }
-        let streak = app_state.uptime_state.get_widget_state(widget_id).unwrap().streak;
+        let streak = app_state
+            .uptime_state
+            .get_widget_state(widget_id)
+            .unwrap()
+            .streak;
         if days > streak {
-            app_state.uptime_state.get_mut_widget_state(widget_id).unwrap().streak = days;
+            app_state
+                .uptime_state
+                .get_mut_widget_state(widget_id)
+                .unwrap()
+                .streak = days;
             File::create("/home/felix/.config/bottom/days")
                 .unwrap()
                 .write(days.to_string().as_bytes())
@@ -118,7 +126,7 @@ impl Painter {
                     .style(self.colours.text_style),
                 Row::new(["", &bottom, "Seconds", &seconds.to_string()])
                     .style(self.colours.text_style),
-                Row::new(["Longest streak", &format!("{streak} days"), "", ""])
+                Row::new(["Longest streak", &format!("{streak} days"), "", ""]),
             ])
             .block(terminal_block)
             .widths(&[

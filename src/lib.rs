@@ -17,7 +17,7 @@ extern crate log;
 use std::{
     boxed::Box,
     fs,
-    io::{stderr, stdout, Write, Read},
+    io::{stderr, stdout, Read, Write},
     panic::PanicInfo,
     path::PathBuf,
     process::{Command, Stdio},
@@ -49,7 +49,7 @@ use crossterm::{
 use data_conversion::*;
 use options::*;
 use utils::error;
-use widgets::{UnsafeTerminalWidgetState, ConnectionsWidgetData};
+use widgets::{ConnectionsWidgetData, UnsafeTerminalWidgetState};
 
 pub mod app;
 pub mod utils {
@@ -507,7 +507,12 @@ pub fn update_data(app: &mut App) {
                     if let Ok(_) = collector.try_wait() {
                         let mut data = Vec::new();
                         let mut stdout = String::new();
-                        collector.stdout.take().unwrap().read_to_string(&mut stdout).unwrap();
+                        collector
+                            .stdout
+                            .take()
+                            .unwrap()
+                            .read_to_string(&mut stdout)
+                            .unwrap();
                         for line in stdout.lines().skip(2) {
                             let mut fields = line.split_ascii_whitespace().skip(3);
                             let local_address = fields.next().unwrap().to_string();
@@ -518,7 +523,7 @@ pub fn update_data(app: &mut App) {
                                 name,
                                 local_address,
                                 remote_address,
-                                status
+                                status,
                             })
                         }
                         connections.ingest_data(&data);
@@ -532,7 +537,7 @@ pub fn update_data(app: &mut App) {
                             .stdout(Stdio::piped())
                             .stderr(Stdio::piped())
                             .spawn()
-                            .unwrap()
+                            .unwrap(),
                     );
                 }
             }

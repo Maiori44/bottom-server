@@ -11,7 +11,11 @@ impl Painter {
         &self, f: &mut Frame<'_, B>, app_state: &mut app::App, draw_loc: Rect, widget_id: u64,
     ) {
         let recalculate_column_widths = app_state.should_get_widget_bounds();
-        if let Some(connections_widget_state) = app_state.connections_state.widget_states.get_mut(&widget_id) {
+        if let Some(connections_widget_state) = app_state
+            .connections_state
+            .widget_states
+            .get_mut(&widget_id)
+        {
             let is_on_widget = app_state.current_widget.widget_id == widget_id;
 
             let draw_info = DrawInfo {
