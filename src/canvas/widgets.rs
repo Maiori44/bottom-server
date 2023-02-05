@@ -10,3 +10,4 @@ pub mod process_table;
 pub mod temperature_table;
 pub mod terminal_display;
 pub mod uptime_display;
+pub mod connections_table;

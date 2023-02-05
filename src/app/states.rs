@@ -9,7 +9,7 @@ use crate::{
     utils::gen_util::str_width,
     widgets::{
         BatteryWidgetState, CpuWidgetState, DiskTableWidget, MemWidgetState, NetWidgetState,
-        ProcWidgetState, TempWidgetState, TerminalWidgetState, UptimeWidgetState,
+        ProcWidgetState, TempWidgetState, TerminalWidgetState, UptimeWidgetState, ConnectionsWidgetState,
     },
 };
 
@@ -432,6 +432,24 @@ impl UptimeState {
     }
 
     pub fn get_widget_state(&self, widget_id: u64) -> Option<&UptimeWidgetState> {
+        self.widget_states.get(&widget_id)
+    }
+}
+
+pub struct ConnectionsState {
+    pub widget_states: HashMap<u64, ConnectionsWidgetState>,
+}
+
+impl ConnectionsState {
+    pub fn init(widget_states: HashMap<u64, ConnectionsWidgetState>) -> Self {
+        ConnectionsState { widget_states }
+    }
+
+    pub fn get_mut_widget_state(&mut self, widget_id: u64) -> Option<&mut ConnectionsWidgetState> {
+        self.widget_states.get_mut(&widget_id)
+    }
+
+    pub fn get_widget_state(&self, widget_id: u64) -> Option<&ConnectionsWidgetState> {
         self.widget_states.get(&widget_id)
     }
 }
