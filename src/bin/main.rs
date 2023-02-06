@@ -239,7 +239,7 @@ fn main() -> Result<()> {
                             }
                         }
 
-                        if app.connections_state.widget_states.len() > 0 {
+                        if !app.connections_state.widget_states.is_empty() {
                             app.converted_data.ingest_connections_data();
                         }
 
