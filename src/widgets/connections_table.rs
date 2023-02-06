@@ -82,7 +82,12 @@ impl SortsRow for ConnectionsWidgetColumn {
     fn sort_data(&self, data: &mut [Self::DataType], descending: bool) {
         match self {
             ConnectionsWidgetColumn::Name => {
-                data.sort_by(move |a, b| sort_partial_fn(descending)(&a.name, &b.name));
+                data.sort_by(move |a, b| {
+                    sort_partial_fn(descending)(
+                        a.name.split('/').next().unwrap().parse::<u32>().unwrap_or(0),
+                        b.name.split('/').next().unwrap().parse::<u32>().unwrap_or(0)
+                    )
+                });
             }
             ConnectionsWidgetColumn::LocalAddress => {
                 data.sort_by(move |a, b| {
@@ -124,7 +129,7 @@ impl ConnectionsWidgetState {
                 show_current_entry_when_unfocused: false,
             },
             sort_index: 0,
-            order: SortOrder::Ascending,
+            order: SortOrder::Descending,
         };
 
         let styling = DataTableStyling::from_colours(colours);
