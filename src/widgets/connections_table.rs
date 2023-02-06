@@ -1,4 +1,4 @@
-use std::{borrow::Cow, cmp::max, process::Child};
+use std::{borrow::Cow, cmp::max};
 
 use tui::text::Text;
 
@@ -103,7 +103,6 @@ impl SortsRow for ConnectionsWidgetColumn {
 
 pub struct ConnectionsWidgetState {
     pub table: SortDataTable<ConnectionsWidgetData, ConnectionsWidgetColumn>,
-    pub collector: Option<Child>,
 }
 
 impl ConnectionsWidgetState {
@@ -132,7 +131,6 @@ impl ConnectionsWidgetState {
 
         Self {
             table: SortDataTable::new_sortable(columns, props, styling),
-            collector: None,
         }
     }
 
