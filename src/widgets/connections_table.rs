@@ -84,8 +84,18 @@ impl SortsRow for ConnectionsWidgetColumn {
             ConnectionsWidgetColumn::Name => {
                 data.sort_by(move |a, b| {
                     sort_partial_fn(descending)(
-                        a.name.split('/').next().unwrap().parse::<u32>().unwrap_or(0),
-                        b.name.split('/').next().unwrap().parse::<u32>().unwrap_or(0)
+                        a.name
+                            .split('/')
+                            .next()
+                            .unwrap()
+                            .parse::<u32>()
+                            .unwrap_or(0),
+                        b.name
+                            .split('/')
+                            .next()
+                            .unwrap()
+                            .parse::<u32>()
+                            .unwrap_or(0),
                     )
                 });
             }

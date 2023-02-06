@@ -5,15 +5,18 @@ use std::process::Command;
 
 use kstring::KString;
 
-use crate::{app::{
-    data_farmer::DataCollection,
-    data_harvester::{cpu::CpuDataType, memory::MemHarvest, temperature::TemperatureType},
-    AxisScaling,
-}, widgets::ConnectionsWidgetData};
 use crate::components::tui_widget::time_chart::Point;
 use crate::units::data_units::DataUnit;
 use crate::utils::gen_util::*;
 use crate::widgets::{DiskWidgetData, TempWidgetData};
+use crate::{
+    app::{
+        data_farmer::DataCollection,
+        data_harvester::{cpu::CpuDataType, memory::MemHarvest, temperature::TemperatureType},
+        AxisScaling,
+    },
+    widgets::ConnectionsWidgetData,
+};
 
 #[derive(Debug)]
 pub enum BatteryDuration {
@@ -93,7 +96,7 @@ pub struct ConvertedData {
     pub battery_data: Vec<ConvertedBatteryData>,
     pub disk_data: Vec<DiskWidgetData>,
     pub temp_data: Vec<TempWidgetData>,
-    pub connections_data: Vec<ConnectionsWidgetData,>
+    pub connections_data: Vec<ConnectionsWidgetData>,
 }
 
 impl ConvertedData {
@@ -146,8 +149,9 @@ impl ConvertedData {
                 .args(["-a", "-t", "-n", "-p"])
                 .output()
                 .unwrap()
-                .stdout
-        ).unwrap();
+                .stdout,
+        )
+        .unwrap();
         for line in output.lines().skip(2) {
             let mut fields = line.split_ascii_whitespace().skip(3);
             let local_address = fields.next().unwrap().to_string();
