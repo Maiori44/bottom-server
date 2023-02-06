@@ -1,13 +1,15 @@
 //! This mainly concerns converting collected data into things that the canvas
 //! can actually handle.
 
+use std::process::Command;
+
 use kstring::KString;
 
-use crate::app::{
+use crate::{app::{
     data_farmer::DataCollection,
     data_harvester::{cpu::CpuDataType, memory::MemHarvest, temperature::TemperatureType},
     AxisScaling,
-};
+}, widgets::ConnectionsWidgetData};
 use crate::components::tui_widget::time_chart::Point;
 use crate::units::data_units::DataUnit;
 use crate::utils::gen_util::*;
@@ -91,6 +93,7 @@ pub struct ConvertedData {
     pub battery_data: Vec<ConvertedBatteryData>,
     pub disk_data: Vec<DiskWidgetData>,
     pub temp_data: Vec<TempWidgetData>,
+    pub connections_data: Vec<ConnectionsWidgetData,>
 }
 
 impl ConvertedData {
@@ -134,6 +137,30 @@ impl ConvertedData {
         });
 
         self.temp_data.shrink_to_fit();
+    }
+
+    pub fn ingest_connections_data(&mut self) {
+        self.connections_data.clear();
+        let output = String::from_utf8(
+            Command::new("netstat")
+                .args(["-a", "-t", "-n", "-p"])
+                .output()
+                .unwrap()
+                .stdout
+        ).unwrap();
+        for line in output.lines().skip(2) {
+            let mut fields = line.split_ascii_whitespace().skip(3);
+            let local_address = fields.next().unwrap().to_string();
+            let remote_address = fields.next().unwrap().to_string();
+            let status = fields.next().unwrap().to_string();
+            let name = fields.next().unwrap().to_string();
+            self.connections_data.push(ConnectionsWidgetData {
+                name,
+                local_address,
+                remote_address,
+                status,
+            })
+        }
     }
 
     pub fn ingest_cpu_data(&mut self, current_data: &DataCollection) {

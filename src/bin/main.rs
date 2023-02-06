@@ -239,6 +239,10 @@ fn main() -> Result<()> {
                             }
                         }
 
+                        if app.connections_state.widget_states.len() > 0 {
+                            app.converted_data.ingest_connections_data();
+                        }
+
                         // Memory
                         if app.used_widgets.use_mem {
                             app.converted_data.mem_data =

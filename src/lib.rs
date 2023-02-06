@@ -17,10 +17,10 @@ extern crate log;
 use std::{
     boxed::Box,
     fs,
-    io::{stderr, stdout, Read, Write},
+    io::{stderr, stdout, Write},
     panic::PanicInfo,
     path::PathBuf,
-    process::{Command, Stdio},
+    process::Command,
     sync::Mutex,
     sync::{
         mpsc::{Receiver, Sender},
@@ -49,7 +49,7 @@ use crossterm::{
 use data_conversion::*;
 use options::*;
 use utils::error;
-use widgets::{ConnectionsWidgetData, UnsafeTerminalWidgetState};
+use widgets::UnsafeTerminalWidgetState;
 
 pub mod app;
 pub mod utils {
@@ -502,46 +502,7 @@ pub fn update_data(app: &mut App) {
     }
     {
         for connections in app.connections_state.widget_states.values_mut() {
-            match connections.collector.as_mut() {
-                Some(collector) => {
-                    if collector.try_wait().is_ok() {
-                        let mut data = Vec::new();
-                        let mut stdout = String::new();
-                        collector
-                            .stdout
-                            .take()
-                            .unwrap()
-                            .read_to_string(&mut stdout)
-                            .unwrap();
-                        for line in stdout.lines().skip(2) {
-                            let mut fields = line.split_ascii_whitespace().skip(3);
-                            let local_address = fields.next().unwrap().to_string();
-                            let remote_address = fields.next().unwrap().to_string();
-                            let status = fields.next().unwrap().to_string();
-                            let name = fields.next().unwrap().to_string();
-                            data.push(ConnectionsWidgetData {
-                                name,
-                                local_address,
-                                remote_address,
-                                status,
-                            })
-                        }
-                        data.reverse();
-                        connections.ingest_data(&data);
-                        connections.collector = None;
-                    }
-                }
-                None => {
-                    connections.collector = Some(
-                        Command::new("netstat")
-                            .args(["-a", "-t", "-n", "-p"])
-                            .stdout(Stdio::piped())
-                            .stderr(Stdio::piped())
-                            .spawn()
-                            .unwrap(),
-                    );
-                }
-            }
+            connections.ingest_data(&app.converted_data.connections_data)
         }
     }
 
