@@ -113,7 +113,7 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 
 pub fn handle_key_event_or_break(
     event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>,
-    sender: &Sender<BottomEvent>,
+    sender: &Sender<BottomEvent>, termination_ctrl_cvar: Arc<Condvar>,
 ) -> bool {
     if let Some(terminal_widget_state) = app
         .terminal_state
@@ -222,6 +222,7 @@ pub fn handle_key_event_or_break(
                                 app,
                                 reset_sender,
                                 sender,
+                                termination_ctrl_cvar
                             )
                         }
                         _ => {}
@@ -317,6 +318,8 @@ pub fn handle_key_event_or_break(
                 KeyCode::Char(caught_char) => app.on_char_key(caught_char),
                 _ => {}
             }
+        } else if let KeyModifiers::SUPER = event.modifiers {
+            termination_ctrl_cvar.notify_all()
         }
     }
 

@@ -167,6 +167,7 @@ fn main() -> Result<()> {
                         &mut app,
                         &collection_thread_ctrl_sender,
                         &sender,
+                        thread_termination_cvar.clone(),
                     ) {
                         break;
                     }
