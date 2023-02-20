@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0]/[0.8.1] - Unreleased
+
+## Bug Fixes
+
+- [#1021](https://github.com/ClementTsang/bottom/pull/1021): Fix selected text background colour being wrong if only the foreground colour was set.
+
+## Features
+
+- [#1016](https://github.com/ClementTsang/bottom/pull/1016): Add support for displaying process usernames on Windows.
+- [#1022](https://github.com/ClementTsang/bottom/pull/1022): Support three-character hex colour strings for styling.
+- [#1024](https://github.com/ClementTsang/bottom/pull/1024): Support FreeBSD temperature sensors based on `hw.temperature`.
+
+## Changes
+
+- [#1025](https://github.com/ClementTsang/bottom/pull/1025): Officially support M1 macOS.
+
+## Other
+
 ## [0.8.0] - 2023-01-22
 
 ## Bug Fixes

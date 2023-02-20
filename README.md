@@ -100,7 +100,7 @@ You can find more details in [the documentation](https://clementtsang.github.io/
 
 bottom _officially_ supports the following operating systems and corresponding architectures:
 
-- macOS (`x86_64`)
+- macOS (`x86_64`, `aarch64`)
 - Linux (`x86_64`, `i686`, `aarch64`)
 - Windows (`x86_64`, `i686`)
 
@@ -117,13 +117,12 @@ bottom may work on a number of platforms that aren't officially supported. Note 
 - Might not be properly tested by maintainers prior to a stable release.
 - May only receive limited support, such as missing features or bugs that may not be fixed.
 
-Note that some unsupported platforms may eventually be officially supported (e.g., FreeBSD, M1 macOS devices).
+Note that some unsupported platforms may eventually be officially supported (e.g., FreeBSD).
 
 A non-comprehensive list of some currently unofficially supported platforms that may compile/work include:
 
-- FreeBSD on `x86_64`
-- Linux on `armv6`, `armv7`, `powerpc64le`, `riscv64gc`
-- macOS on `aarch64`
+- FreeBSD (`x86_64`)
+- Linux (`armv6`, `armv7`, `powerpc64le`, `riscv64gc`)
 
 For more details on unsupported platforms and known problems, check out [the documentation](https://clementtsang.github.io/bottom/nightly/support/unofficial/).
 
@@ -402,6 +401,7 @@ Thanks to all contributors:
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RaresCon"><img src="https://avatars.githubusercontent.com/u/95525840?v=4?s=100" width="100px;" alt="Rareș Constantin"/><br /><sub><b>Rareș Constantin</b></sub></a><br /><a href="https://github.com/ClementTsang/bottom/commits?author=RaresCon" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://felipesuri.com"><img src="https://avatars.githubusercontent.com/u/50281523?v=4?s=100" width="100px;" alt="felipesuri"/><br /><sub><b>felipesuri</b></sub></a><br /><a href="https://github.com/ClementTsang/bottom/commits?author=felipesuri" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/spital"><img src="https://avatars.githubusercontent.com/u/11034264?v=4?s=100" width="100px;" alt="spital"/><br /><sub><b>spital</b></sub></a><br /><a href="https://github.com/ClementTsang/bottom/commits?author=spital" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://bikodbg.com/"><img src="https://avatars.githubusercontent.com/u/1389811?v=4?s=100" width="100px;" alt="Michael Bikovitsky"/><br /><sub><b>Michael Bikovitsky</b></sub></a><br /><a href="https://github.com/ClementTsang/bottom/commits?author=mbikovitsky" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
