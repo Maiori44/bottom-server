@@ -176,7 +176,9 @@ pub fn handle_key_event_or_break(
                                         .unwrap();
                                     while output.try_wait().unwrap().is_none() {
                                         let mut buf = [0];
-                                        if output.stdout.as_mut().unwrap().read(&mut buf).unwrap() > 0 {
+                                        if output.stdout.as_mut().unwrap().read(&mut buf).unwrap()
+                                            > 0
+                                        {
                                             t.append_output(&buf);
                                         }
                                     }
