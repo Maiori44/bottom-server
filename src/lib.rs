@@ -174,10 +174,11 @@ pub fn handle_key_event_or_break(
                                         .stderr(Stdio::piped())
                                         .spawn()
                                         .unwrap();
-                                    while let None = output.try_wait().unwrap() {
+                                    while output.try_wait().unwrap().is_none() {
                                         let mut buf = [0];
-                                        output.stdout.as_mut().unwrap().read(&mut buf).unwrap();
-                                        t.append_output(&buf);
+                                        if output.stdout.as_mut().unwrap().read(&mut buf).unwrap() > 0 {
+                                            t.append_output(&buf);
+                                        }
                                     }
                                     let mut end = Vec::new();
                                     output.stdout.unwrap().read_to_end(&mut end).unwrap();
@@ -265,7 +266,6 @@ pub fn handle_key_event_or_break(
             KeyCode::Left => app_mut.on_left_key(),
             KeyCode::Right => app_mut.on_right_key(),
             KeyCode::Char('r') => {
-                drop(app_mut);
                 termination_ctrl_cvar.notify_all();
                 return false;
             }

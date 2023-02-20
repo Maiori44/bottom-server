@@ -204,7 +204,7 @@ fn main() -> Result<()> {
                 }
                 BottomEvent::PasteEvent(paste) => {
                     app.lock().unwrap().as_mut().unwrap().handle_paste(paste);
-                    update_data(&mut app.lock().unwrap().as_mut().unwrap());
+                    update_data(app.lock().unwrap().as_mut().unwrap());
                     try_drawing(
                         &mut terminal,
                         app.lock().unwrap().as_mut().unwrap(),
