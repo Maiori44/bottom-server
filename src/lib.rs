@@ -17,10 +17,9 @@ extern crate log;
 use std::{
     boxed::Box,
     fs,
-    io::{stderr, stdout, Write},
-    panic::PanicInfo,
+    io::{stderr, stdout, Write, Read},
     path::PathBuf,
-    process::Command,
+    process::{Command, Stdio},
     sync::Mutex,
     sync::{
         mpsc::{Receiver, Sender},
@@ -43,7 +42,6 @@ use crossterm::{
         KeyModifiers, MouseEvent, MouseEventKind,
     },
     execute,
-    style::Print,
     terminal::{disable_raw_mode, LeaveAlternateScreen},
 };
 use data_conversion::*;
@@ -112,14 +110,17 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 }
 
 pub fn handle_key_event_or_break(
-    event: KeyEvent, app: &mut App, reset_sender: &Sender<ThreadControlEvent>,
+    event: KeyEvent, app: &'static Mutex<Option<App>>, reset_sender: &Sender<ThreadControlEvent>,
     sender: &Sender<BottomEvent>, termination_ctrl_cvar: Arc<Condvar>,
 ) -> bool {
-    if let Some(terminal_widget_state) = app
-        .terminal_state
-        .widget_states
-        .get_mut(&app.current_widget.widget_id)
-    {
+    let current_widget_id = app.lock().unwrap().as_ref().unwrap().current_widget.widget_id;
+	let mut app_lock = app.lock().unwrap();
+    let app_mut = app_lock.as_mut().unwrap();
+	let terminal_widget_state = app_mut
+		.terminal_state
+		.widget_states
+		.get_mut(&current_widget_id);
+    if let Some(terminal_widget_state) = terminal_widget_state {
         if !event.modifiers.contains(KeyModifiers::CONTROL) {
             match event.code {
                 KeyCode::End => terminal_widget_state.offset = 0,
@@ -127,8 +128,8 @@ pub fn handle_key_event_or_break(
                 KeyCode::PageDown if terminal_widget_state.offset > 0 => {
                     terminal_widget_state.offset -= 1
                 }
-                KeyCode::Esc => app.is_expanded = false,
-                _ if app.is_expanded && !terminal_widget_state.is_working => {
+                KeyCode::Esc => app_mut.is_expanded = false,
+                _ if app_mut.is_expanded && !terminal_widget_state.is_working => {
                     match event.code {
                         KeyCode::Up
                             if {
@@ -155,21 +156,35 @@ pub fn handle_key_event_or_break(
                         KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
                             terminal_widget_state.is_working = true;
                             terminal_widget_state.input_offset = 0;
-                            let mut t = UnsafeTerminalWidgetState {
-                                terminal: terminal_widget_state,
-                                sender,
-                            };
-                            thread::spawn(move || {
-                                let command = t.stdin();
-                                let output = Command::new("bash")
-                                    .args(["-c", &command])
-                                    .output()
-                                    .unwrap();
-                                t.append_output(output.stdout);
-                                t.append_output(output.stderr);
-                                t.limit_output();
-                                t.finish();
-                            });
+							drop(app_lock);
+                            {
+                                let mut t = UnsafeTerminalWidgetState {
+                                    app, sender
+                                };                                
+                                thread::spawn(move || {
+                                    let command = t.stdin();
+                                    let mut output = Command::new("bash")
+                                        .args(["-c", &command])
+                                        .stdin(Stdio::null())
+                                        .stdout(Stdio::piped())
+                                        .stderr(Stdio::piped())
+                                        .spawn()
+                                        .unwrap();
+                                    while let None = output.try_wait().unwrap() {
+                                        let mut buf = [0];
+                                        output.stdout.as_mut().unwrap().read(&mut buf).unwrap();
+                                        t.append_output(&buf);
+										
+                                    }
+                                    let mut end = Vec::new();
+                                    output.stdout.unwrap().read_to_end(&mut end).unwrap();
+                                    output.stderr.unwrap().read_to_end(&mut end).unwrap();
+                                    t.append_output(&end);
+                                    //t.limit_output();
+                                    t.finish();
+                                });
+                            }
+                            
                         }
                         KeyCode::Backspace => {
                             let index = terminal_widget_state.selected_input;
@@ -217,13 +232,13 @@ pub fn handle_key_event_or_break(
                             terminal_widget_state.offset = 0;
                         }
                         KeyCode::F(10) => {
-                            return handle_key_event_or_break(
+                            /*return handle_key_event_or_break(
                                 KeyEvent::new(KeyCode::Char('~'), event.modifiers),
                                 app,
                                 reset_sender,
                                 sender,
                                 termination_ctrl_cvar,
-                            )
+                            )*/
                         }
                         _ => {}
                     }
@@ -234,6 +249,7 @@ pub fn handle_key_event_or_break(
         }
     }
 
+    let app = app_mut;
     // debug!("KeyEvent: {:?}", event);
 
     if event.modifiers.is_empty() {
@@ -420,43 +436,6 @@ pub fn check_if_terminal() {
         stderr().flush().unwrap();
         thread::sleep(Duration::from_secs(1));
     }
-}
-
-/// A panic hook to properly restore the terminal in the case of a panic.
-/// Based on [spotify-tui's implementation](https://github.com/Rigellute/spotify-tui/blob/master/src/main.rs).
-pub fn panic_hook(panic_info: &PanicInfo<'_>) {
-    let mut stdout = stdout();
-
-    let msg = match panic_info.payload().downcast_ref::<&'static str>() {
-        Some(s) => *s,
-        None => match panic_info.payload().downcast_ref::<String>() {
-            Some(s) => &s[..],
-            None => "Box<Any>",
-        },
-    };
-
-    let stacktrace: String = format!("{:?}", backtrace::Backtrace::new());
-
-    disable_raw_mode().unwrap();
-    execute!(
-        stdout,
-        DisableBracketedPaste,
-        DisableMouseCapture,
-        LeaveAlternateScreen
-    )
-    .unwrap();
-
-    // Print stack trace.  Must be done after!
-    execute!(
-        stdout,
-        Print(format!(
-            "thread '<unnamed>' panicked at '{}', {}\n\r{}",
-            msg,
-            panic_info.location().unwrap(),
-            stacktrace
-        )),
-    )
-    .unwrap();
 }
 
 pub fn update_data(app: &mut App) {
