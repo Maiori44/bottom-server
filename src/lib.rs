@@ -222,7 +222,7 @@ pub fn handle_key_event_or_break(
                                 app,
                                 reset_sender,
                                 sender,
-                                termination_ctrl_cvar
+                                termination_ctrl_cvar,
                             )
                         }
                         _ => {}
