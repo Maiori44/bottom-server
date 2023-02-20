@@ -18,11 +18,12 @@ use std::{
 
 use anyhow::{Context, Result};
 use bottom::{
+    app::App,
     canvas::{self, canvas_styling::CanvasColours},
     constants::*,
     data_conversion::*,
     options::*,
-    *, app::App,
+    *,
 };
 use crossterm::{
     event::{EnableBracketedPaste, EnableMouseCapture},
@@ -89,7 +90,14 @@ fn main() -> Result<()> {
         let lock = thread_termination_lock.clone();
         let cvar = thread_termination_cvar.clone();
         let cleaning_sender = sender.clone();
-        let offset_wait_time = app.lock().unwrap().as_ref().unwrap().app_config_fields.retention_ms + 60000;
+        let offset_wait_time = app
+            .lock()
+            .unwrap()
+            .as_ref()
+            .unwrap()
+            .app_config_fields
+            .retention_ms
+            + 60000;
         thread::spawn(move || {
             loop {
                 let result = cvar.wait_timeout(
@@ -123,7 +131,7 @@ fn main() -> Result<()> {
             app_lock.as_ref().unwrap().used_widgets.clone(),
         )
     };
-    
+
     // Set up up tui and crossterm
     let mut stdout_val = stdout();
     execute!(
@@ -162,7 +170,11 @@ fn main() -> Result<()> {
         if let Ok(recv) = receiver.recv_timeout(Duration::from_millis(TICK_RATE_IN_MILLISECONDS)) {
             match recv {
                 BottomEvent::Resize => {
-                    try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?; // FIXME: This is bugged with frozen?
+                    try_drawing(
+                        &mut terminal,
+                        app.lock().unwrap().as_mut().unwrap(),
+                        &mut painter,
+                    )?; // FIXME: This is bugged with frozen?
                 }
                 BottomEvent::KeyInput(event) => {
                     if handle_key_event_or_break(
@@ -175,20 +187,37 @@ fn main() -> Result<()> {
                         break;
                     }
                     update_data(app.lock().unwrap().as_mut().unwrap());
-                    try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?;
+                    try_drawing(
+                        &mut terminal,
+                        app.lock().unwrap().as_mut().unwrap(),
+                        &mut painter,
+                    )?;
                 }
                 BottomEvent::MouseInput(event) => {
                     handle_mouse_event(event, app.lock().unwrap().as_mut().unwrap());
                     update_data(app.lock().unwrap().as_mut().unwrap());
-                    try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?;
+                    try_drawing(
+                        &mut terminal,
+                        app.lock().unwrap().as_mut().unwrap(),
+                        &mut painter,
+                    )?;
                 }
                 BottomEvent::PasteEvent(paste) => {
                     app.lock().unwrap().as_mut().unwrap().handle_paste(paste);
                     update_data(&mut app.lock().unwrap().as_mut().unwrap());
-                    try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?;
+                    try_drawing(
+                        &mut terminal,
+                        app.lock().unwrap().as_mut().unwrap(),
+                        &mut painter,
+                    )?;
                 }
                 BottomEvent::Update(data) => {
-                    app.lock().unwrap().as_mut().unwrap().data_collection.eat_data(data);
+                    app.lock()
+                        .unwrap()
+                        .as_mut()
+                        .unwrap()
+                        .data_collection
+                        .eat_data(data);
 
                     // This thing is required as otherwise, some widgets can't draw correctly w/o
                     // some data (or they need to be re-drawn).
@@ -197,9 +226,22 @@ fn main() -> Result<()> {
                         app.lock().unwrap().as_mut().unwrap().is_force_redraw = true;
                     }
 
-                    if !app.lock().unwrap().as_mut().unwrap().frozen_state.is_frozen() {
+                    if !app
+                        .lock()
+                        .unwrap()
+                        .as_mut()
+                        .unwrap()
+                        .frozen_state
+                        .is_frozen()
+                    {
                         // Convert all data into tui-compliant components
-                        let data_collection = app.lock().unwrap().as_ref().unwrap().data_collection.clone();
+                        let data_collection = app
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .data_collection
+                            .clone();
                         // Network
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_net {
                             let network_data = {
@@ -207,77 +249,221 @@ fn main() -> Result<()> {
                                 convert_network_data_points(
                                     &app_lock.as_ref().unwrap().data_collection,
                                     app_lock.as_ref().unwrap().app_config_fields.use_basic_mode
-                                        || app_lock.as_ref().unwrap().app_config_fields.use_old_network_legend,
-                                    &app_lock.as_ref().unwrap().app_config_fields.network_scale_type,
-                                    &app_lock.as_ref().unwrap().app_config_fields.network_unit_type,
-                                    app_lock.as_ref().unwrap().app_config_fields.network_use_binary_prefix,
+                                        || app_lock
+                                            .as_ref()
+                                            .unwrap()
+                                            .app_config_fields
+                                            .use_old_network_legend,
+                                    &app_lock
+                                        .as_ref()
+                                        .unwrap()
+                                        .app_config_fields
+                                        .network_scale_type,
+                                    &app_lock
+                                        .as_ref()
+                                        .unwrap()
+                                        .app_config_fields
+                                        .network_unit_type,
+                                    app_lock
+                                        .as_ref()
+                                        .unwrap()
+                                        .app_config_fields
+                                        .network_use_binary_prefix,
                                 )
                             };
-                            app.lock().unwrap().as_mut().unwrap().converted_data.network_data_rx = network_data.rx;
-                            app.lock().unwrap().as_mut().unwrap().converted_data.network_data_tx = network_data.tx;
-                            app.lock().unwrap().as_mut().unwrap().converted_data.rx_display = network_data.rx_display;
-                            app.lock().unwrap().as_mut().unwrap().converted_data.tx_display = network_data.tx_display;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .network_data_rx = network_data.rx;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .network_data_tx = network_data.tx;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .rx_display = network_data.rx_display;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .tx_display = network_data.tx_display;
                             if let Some(total_rx_display) = network_data.total_rx_display {
-                                app.lock().unwrap().as_mut().unwrap().converted_data.total_rx_display = total_rx_display;
+                                app.lock()
+                                    .unwrap()
+                                    .as_mut()
+                                    .unwrap()
+                                    .converted_data
+                                    .total_rx_display = total_rx_display;
                             }
                             if let Some(total_tx_display) = network_data.total_tx_display {
-                                app.lock().unwrap().as_mut().unwrap().converted_data.total_tx_display = total_tx_display;
+                                app.lock()
+                                    .unwrap()
+                                    .as_mut()
+                                    .unwrap()
+                                    .converted_data
+                                    .total_tx_display = total_tx_display;
                             }
                         }
-                        
+
                         // Disk
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_disk {
-                            app.lock().unwrap().as_mut().unwrap().converted_data.ingest_disk_data(&data_collection);
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .ingest_disk_data(&data_collection);
 
-                            for disk in app.lock().unwrap().as_mut().unwrap().disk_state.widget_states.values_mut() {
+                            for disk in app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .disk_state
+                                .widget_states
+                                .values_mut()
+                            {
                                 disk.force_data_update();
                             }
                         }
-                        
+
                         // Temperatures
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_temp {
                             {
                                 let mut app_lock = app.lock().unwrap();
-                                let temperature_type = app_lock.as_ref().unwrap().app_config_fields.temperature_type;
-                                app_lock.as_mut().unwrap().converted_data.ingest_temp_data(
-                                    &data_collection,
-                                    temperature_type,
-                                );
+                                let temperature_type = app_lock
+                                    .as_ref()
+                                    .unwrap()
+                                    .app_config_fields
+                                    .temperature_type;
+                                app_lock
+                                    .as_mut()
+                                    .unwrap()
+                                    .converted_data
+                                    .ingest_temp_data(&data_collection, temperature_type);
                             }
-                            
-                            for temp in app.lock().unwrap().as_mut().unwrap().temp_state.widget_states.values_mut() {
+
+                            for temp in app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .temp_state
+                                .widget_states
+                                .values_mut()
+                            {
                                 temp.force_data_update();
                             }
                         }
-                        
-                        if !app.lock().unwrap().as_mut().unwrap().connections_state.widget_states.is_empty() {
-                            app.lock().unwrap().as_mut().unwrap().converted_data.ingest_connections_data();
+
+                        if !app
+                            .lock()
+                            .unwrap()
+                            .as_mut()
+                            .unwrap()
+                            .connections_state
+                            .widget_states
+                            .is_empty()
+                        {
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .ingest_connections_data();
                         }
-                        
+
                         // Memory
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_mem {
-                            let memory_harvest = app.lock().unwrap().as_mut().unwrap().data_collection.memory_harvest.clone();
-                            app.lock().unwrap().as_mut().unwrap().converted_data.mem_data = memory_harvest;
-                            let swap_harvest = app.lock().unwrap().as_mut().unwrap().data_collection.swap_harvest.clone();
-                            app.lock().unwrap().as_mut().unwrap().converted_data.swap_data = swap_harvest;
+                            let memory_harvest = app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .data_collection
+                                .memory_harvest
+                                .clone();
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .mem_data = memory_harvest;
+                            let swap_harvest = app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .data_collection
+                                .swap_harvest
+                                .clone();
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .swap_data = swap_harvest;
 
-                            let (memory_labels, swap_labels) =
-                                convert_mem_labels(&app.lock().unwrap().as_mut().unwrap().data_collection);
+                            let (memory_labels, swap_labels) = convert_mem_labels(
+                                &app.lock().unwrap().as_mut().unwrap().data_collection,
+                            );
 
-                            app.lock().unwrap().as_mut().unwrap().converted_data.mem_labels = memory_labels;
-                            app.lock().unwrap().as_mut().unwrap().converted_data.swap_labels = swap_labels;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .mem_labels = memory_labels;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .swap_labels = swap_labels;
                         }
 
                         // CPU
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_cpu {
-                            app.lock().unwrap().as_mut().unwrap().converted_data.ingest_cpu_data(&data_collection);
-                            let load_avg_harvest = app.lock().unwrap().as_ref().unwrap().data_collection.load_avg_harvest;
-                            app.lock().unwrap().as_mut().unwrap().converted_data.load_avg_data = load_avg_harvest;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .ingest_cpu_data(&data_collection);
+                            let load_avg_harvest = app
+                                .lock()
+                                .unwrap()
+                                .as_ref()
+                                .unwrap()
+                                .data_collection
+                                .load_avg_harvest;
+                            app.lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .converted_data
+                                .load_avg_data = load_avg_harvest;
                         }
 
                         // Processes
                         if app.lock().unwrap().as_mut().unwrap().used_widgets.use_proc {
-                            for proc in app.lock().unwrap().as_mut().unwrap().proc_state.widget_states.values_mut() {
+                            for proc in app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .proc_state
+                                .widget_states
+                                .values_mut()
+                            {
                                 proc.force_data_update();
                             }
                         }
@@ -285,19 +471,45 @@ fn main() -> Result<()> {
                         // Battery
                         #[cfg(feature = "battery")]
                         {
-                            if app.lock().unwrap().as_mut().unwrap().used_widgets.use_battery {
-                                app.lock().unwrap().as_mut().unwrap().converted_data.battery_data =
-                                    convert_battery_harvest(&data_collection);
+                            if app
+                                .lock()
+                                .unwrap()
+                                .as_mut()
+                                .unwrap()
+                                .used_widgets
+                                .use_battery
+                            {
+                                app.lock()
+                                    .unwrap()
+                                    .as_mut()
+                                    .unwrap()
+                                    .converted_data
+                                    .battery_data = convert_battery_harvest(&data_collection);
                             }
                         }
-                        
+
                         update_data(app.lock().unwrap().as_mut().unwrap());
-                        try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?;
+                        try_drawing(
+                            &mut terminal,
+                            app.lock().unwrap().as_mut().unwrap(),
+                            &mut painter,
+                        )?;
                     }
                 }
                 BottomEvent::Clean => {
-                    let retention_ms = app.lock().unwrap().as_mut().unwrap().app_config_fields.retention_ms;
-                    app.lock().unwrap().as_mut().unwrap().data_collection.clean_data(retention_ms);
+                    let retention_ms = app
+                        .lock()
+                        .unwrap()
+                        .as_mut()
+                        .unwrap()
+                        .app_config_fields
+                        .retention_ms;
+                    app.lock()
+                        .unwrap()
+                        .as_mut()
+                        .unwrap()
+                        .data_collection
+                        .clean_data(retention_ms);
                 }
             }
         }

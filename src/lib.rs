@@ -17,7 +17,7 @@ extern crate log;
 use std::{
     boxed::Box,
     fs,
-    io::{stderr, stdout, Write, Read},
+    io::{stderr, stdout, Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
     sync::Mutex,
@@ -113,13 +113,19 @@ pub fn handle_key_event_or_break(
     event: KeyEvent, app: &'static Mutex<Option<App>>, reset_sender: &Sender<ThreadControlEvent>,
     sender: &Sender<BottomEvent>, termination_ctrl_cvar: Arc<Condvar>,
 ) -> bool {
-    let current_widget_id = app.lock().unwrap().as_ref().unwrap().current_widget.widget_id;
-	let mut app_lock = app.lock().unwrap();
+    let current_widget_id = app
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .current_widget
+        .widget_id;
+    let mut app_lock = app.lock().unwrap();
     let app_mut = app_lock.as_mut().unwrap();
-	let terminal_widget_state = app_mut
-		.terminal_state
-		.widget_states
-		.get_mut(&current_widget_id);
+    let terminal_widget_state = app_mut
+        .terminal_state
+        .widget_states
+        .get_mut(&current_widget_id);
     if let Some(terminal_widget_state) = terminal_widget_state {
         if !event.modifiers.contains(KeyModifiers::CONTROL) {
             match event.code {
@@ -156,11 +162,9 @@ pub fn handle_key_event_or_break(
                         KeyCode::Enter if !terminal_widget_state.stdin.is_empty() => {
                             terminal_widget_state.is_working = true;
                             terminal_widget_state.input_offset = 0;
-							drop(app_lock);
+                            drop(app_lock);
                             {
-                                let mut t = UnsafeTerminalWidgetState {
-                                    app, sender
-                                };                                
+                                let mut t = UnsafeTerminalWidgetState { app, sender };
                                 thread::spawn(move || {
                                     let command = t.stdin();
                                     let mut output = Command::new("bash")
@@ -174,7 +178,6 @@ pub fn handle_key_event_or_break(
                                         let mut buf = [0];
                                         output.stdout.as_mut().unwrap().read(&mut buf).unwrap();
                                         t.append_output(&buf);
-										
                                     }
                                     let mut end = Vec::new();
                                     output.stdout.unwrap().read_to_end(&mut end).unwrap();
@@ -184,7 +187,6 @@ pub fn handle_key_event_or_break(
                                     t.finish();
                                 });
                             }
-                            
                         }
                         KeyCode::Backspace => {
                             let index = terminal_widget_state.selected_input;
@@ -266,7 +268,7 @@ pub fn handle_key_event_or_break(
                 drop(app_mut);
                 termination_ctrl_cvar.notify_all();
                 return false;
-            },
+            }
             KeyCode::Char(caught_char) => app_mut.on_char_key(caught_char),
             KeyCode::Esc => app_mut.on_esc(),
             KeyCode::Enter => app_mut.on_enter(),
