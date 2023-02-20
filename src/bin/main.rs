@@ -287,17 +287,17 @@ fn main() -> Result<()> {
                         {
                             if app.lock().unwrap().as_mut().unwrap().used_widgets.use_battery {
                                 app.lock().unwrap().as_mut().unwrap().converted_data.battery_data =
-                                    convert_battery_harvest(&app.lock().unwrap().as_mut().unwrap().data_collection);
+                                    convert_battery_harvest(&data_collection);
                             }
                         }
-
+                        
                         update_data(app.lock().unwrap().as_mut().unwrap());
                         try_drawing(&mut terminal, app.lock().unwrap().as_mut().unwrap(), &mut painter)?;
                     }
                 }
                 BottomEvent::Clean => {
-                    app.lock().unwrap().as_mut().unwrap().data_collection
-                        .clean_data(app.lock().unwrap().as_mut().unwrap().app_config_fields.retention_ms);
+                    let retention_ms = app.lock().unwrap().as_mut().unwrap().app_config_fields.retention_ms;
+                    app.lock().unwrap().as_mut().unwrap().data_collection.clean_data(retention_ms);
                 }
             }
         }
