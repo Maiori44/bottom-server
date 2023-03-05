@@ -146,7 +146,7 @@ impl ConvertedData {
         self.connections_data.clear();
         let output = String::from_utf8(
             Command::new("netstat")
-                .args(["-a", "-t", "-n", "-p"])
+                .args(["-a", "-t", "-u", "-n", "-p", "-4"])
                 .output()
                 .unwrap()
                 .stdout,
