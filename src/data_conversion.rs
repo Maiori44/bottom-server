@@ -156,8 +156,15 @@ impl ConvertedData {
             let mut fields = line.split_ascii_whitespace().skip(3);
             let local_address = fields.next().unwrap().to_string();
             let remote_address = fields.next().unwrap().to_string();
-            let status = fields.next().unwrap().to_string();
-            let name = fields.next().unwrap().to_string();
+            let mut status = fields.next().unwrap().to_string();
+            let name = match fields.next() {
+                Some(name) => name.to_string(),
+                None => {
+                    let name = status;
+                    status = String::from("UDP");
+                    name
+                }
+            };
             self.connections_data.push(ConnectionsWidgetData {
                 name,
                 local_address,
