@@ -7,6 +7,7 @@ use std::{
 use concat_string::concat_string;
 use data_farmer::*;
 use data_harvester::temperature;
+use filter::*;
 use layout_manager::*;
 pub use states::*;
 use typed_builder::*;
@@ -23,6 +24,7 @@ use crate::{
 
 pub mod data_farmer;
 pub mod data_harvester;
+pub mod filter;
 pub mod frozen_state;
 pub mod layout_manager;
 mod process_killer;
@@ -31,7 +33,7 @@ pub mod states;
 
 use frozen_state::FrozenState;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum AxisScaling {
     Log,
     Linear,
@@ -45,7 +47,7 @@ impl Default for AxisScaling {
 
 /// AppConfigFields is meant to cover basic fields that would normally be set
 /// by config files or launch options.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct AppConfigFields {
     pub update_rate_in_milliseconds: u64,
     pub temperature_type: temperature::TemperatureType,
@@ -79,12 +81,6 @@ pub struct DataFilters {
     pub mount_filter: Option<Filter>,
     pub temp_filter: Option<Filter>,
     pub net_filter: Option<Filter>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Filter {
-    pub is_list_ignored: bool,
-    pub list: Vec<regex::Regex>,
 }
 
 #[derive(TypedBuilder)]

@@ -14,6 +14,10 @@
 #
 # Unsupported platforms run the following tasks:
 # - cargo check
+#
+# Note that not all platforms are tested using this CI action! There are some
+# tested by Cirrus CI due to (free) platform limitations on GitHub. Currently,
+# this is just macOS M1 and FreeBSD.
 
 name: ci
 
@@ -56,9 +60,9 @@ jobs:
   # Note that m1 macOS is tested via CirrusCI.
   supported:
     needs: pre-job
-    runs-on: ${{ matrix.info.os }}
     if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
-    timeout-minutes: 30
+    runs-on: ${{ matrix.info.os }}
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +140,7 @@ jobs:
     runs-on: ${{ matrix.info.os }}
     if: ${{ needs.pre-job.outputs.should_skip != 'true' }}
     continue-on-error: true
-    timeout-minutes: 30
+    timeout-minutes: 18
     strategy:
       fail-fast: false
       matrix:

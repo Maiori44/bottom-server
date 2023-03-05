@@ -10,8 +10,9 @@ use fxhash::FxHashMap;
 #[cfg(feature = "battery")]
 use starship_battery::{Battery, Manager};
 
-#[cfg(not(target_os = "linux"))]
 use sysinfo::{System, SystemExt};
+
+use self::memory::MemCollect;
 
 use super::DataFilters;
 use crate::app::layout_manager::UsedWidgets;
@@ -99,10 +100,7 @@ impl Data {
 #[derive(Debug)]
 pub struct DataCollector {
     pub data: Data,
-    #[cfg(not(target_os = "linux"))]
     sys: System,
-    previous_cpu_times: Vec<(cpu::PastCpuWork, cpu::PastCpuTotal)>,
-    previous_average_cpu_time: Option<(cpu::PastCpuWork, cpu::PastCpuTotal)>,
     #[cfg(target_os = "linux")]
     pid_mapping: FxHashMap<crate::Pid, processes::PrevProcDetails>,
     #[cfg(target_os = "linux")]
@@ -132,10 +130,7 @@ impl DataCollector {
     pub fn new(filters: DataFilters) -> Self {
         DataCollector {
             data: Data::default(),
-            #[cfg(not(target_os = "linux"))]
             sys: System::new_with_specifics(sysinfo::RefreshKind::new()),
-            previous_cpu_times: vec![],
-            previous_average_cpu_time: None,
             #[cfg(target_os = "linux")]
             pid_mapping: FxHashMap::default(),
             #[cfg(target_os = "linux")]
@@ -162,32 +157,30 @@ impl DataCollector {
     }
 
     pub fn init(&mut self) {
-        #[cfg(target_os = "linux")]
-        {
-            futures::executor::block_on(self.initialize_memory_size());
+        self.sys.refresh_memory();
+        self.mem_total_kb = self.sys.total_memory();
+
+        // Refresh network list once at the start.
+        // TODO: may be worth refreshing every once in a while (maybe on a separate timer).
+        if self.widgets_to_harvest.use_net {
+            self.sys.refresh_networks_list();
         }
+
+        if self.widgets_to_harvest.use_proc || self.widgets_to_harvest.use_cpu {
+            self.sys.refresh_cpu();
+        }
+
         #[cfg(not(target_os = "linux"))]
         {
-            self.sys.refresh_memory();
-            self.mem_total_kb = self.sys.total_memory();
-
             // TODO: Would be good to get this and network list running on a timer instead...?
+
             // Refresh components list once...
             if self.widgets_to_harvest.use_temp {
                 self.sys.refresh_components_list();
             }
 
-            // Refresh network list once...
-            if cfg!(target_os = "windows") && self.widgets_to_harvest.use_net {
-                self.sys.refresh_networks_list();
-            }
-
             if cfg!(target_os = "windows") && self.widgets_to_harvest.use_proc {
                 self.sys.refresh_users_list();
-            }
-
-            if self.widgets_to_harvest.use_proc || self.widgets_to_harvest.use_cpu {
-                self.sys.refresh_cpu();
             }
 
             // Refresh disk list once...
@@ -216,17 +209,6 @@ impl DataCollector {
         std::thread::sleep(std::time::Duration::from_millis(250));
 
         self.data.cleanup();
-
-        // trace!("Enabled widgets to harvest: {:#?}", self.widgets_to_harvest);
-    }
-
-    #[cfg(target_os = "linux")]
-    async fn initialize_memory_size(&mut self) {
-        self.mem_total_kb = if let Ok(mem) = heim::memory::memory().await {
-            mem.total().get::<heim::units::information::kilobyte>()
-        } else {
-            1
-        };
     }
 
     pub fn set_data_collection(&mut self, used_widgets: UsedWidgets) {
@@ -250,11 +232,20 @@ impl DataCollector {
     }
 
     pub async fn update_data(&mut self) {
+        if self.widgets_to_harvest.use_proc || self.widgets_to_harvest.use_cpu {
+            self.sys.refresh_cpu();
+        }
+
+        if self.widgets_to_harvest.use_mem {
+            self.sys.refresh_memory();
+        }
+
+        if self.widgets_to_harvest.use_net {
+            self.sys.refresh_networks();
+        }
+
         #[cfg(not(target_os = "linux"))]
         {
-            if self.widgets_to_harvest.use_proc || self.widgets_to_harvest.use_cpu {
-                self.sys.refresh_cpu();
-            }
             if self.widgets_to_harvest.use_proc {
                 self.sys.refresh_processes();
             }
@@ -262,20 +253,10 @@ impl DataCollector {
                 self.sys.refresh_components();
             }
 
-            #[cfg(target_os = "windows")]
-            {
-                if self.widgets_to_harvest.use_net {
-                    self.sys.refresh_networks();
-                }
-            }
-
             #[cfg(target_os = "freebsd")]
             {
                 if self.widgets_to_harvest.use_disk {
                     self.sys.refresh_disks();
-                }
-                if self.widgets_to_harvest.use_mem {
-                    self.sys.refresh_memory();
                 }
             }
         }
@@ -284,38 +265,12 @@ impl DataCollector {
 
         // CPU
         if self.widgets_to_harvest.use_cpu {
-            #[cfg(not(target_os = "freebsd"))]
-            {
-                if let Ok(cpu_data) = cpu::get_cpu_data_list(
-                    self.show_average_cpu,
-                    &mut self.previous_cpu_times,
-                    &mut self.previous_average_cpu_time,
-                )
-                .await
-                {
-                    self.data.cpu = Some(cpu_data);
-                }
-            }
-            #[cfg(target_os = "freebsd")]
-            {
-                if let Ok(cpu_data) = cpu::get_cpu_data_list(
-                    &self.sys,
-                    self.show_average_cpu,
-                    &mut self.previous_cpu_times,
-                    &mut self.previous_average_cpu_time,
-                )
-                .await
-                {
-                    self.data.cpu = Some(cpu_data);
-                }
-            }
+            self.data.cpu = cpu::get_cpu_data_list(&self.sys, self.show_average_cpu).ok();
 
             #[cfg(target_family = "unix")]
             {
                 // Load Average
-                if let Ok(load_avg_data) = cpu::get_load_avg().await {
-                    self.data.load_avg = Some(load_avg_data);
-                }
+                self.data.load_avg = cpu::get_load_avg().ok();
             }
         }
 
@@ -334,24 +289,23 @@ impl DataCollector {
             if let Ok(mut process_list) = {
                 #[cfg(target_os = "linux")]
                 {
-                    // Must do this here since we otherwise have to make `get_process_data` async.
-                    use self::processes::CpuUsageStrategy;
+                    use self::processes::{PrevProc, ProcHarvestOptions};
 
-                    let normalize_cpu = if self.unnormalized_cpu {
-                        heim::cpu::logical_count()
-                            .await
-                            .map(|v| CpuUsageStrategy::NonNormalized(v as f64))
-                            .unwrap_or(CpuUsageStrategy::Normalized)
-                    } else {
-                        CpuUsageStrategy::Normalized
+                    let prev_proc = PrevProc {
+                        prev_idle: &mut self.prev_idle,
+                        prev_non_idle: &mut self.prev_non_idle,
+                    };
+
+                    let proc_harvest_options = ProcHarvestOptions {
+                        use_current_cpu_total: self.use_current_cpu_total,
+                        unnormalized_cpu: self.unnormalized_cpu,
                     };
 
                     processes::get_process_data(
-                        &mut self.prev_idle,
-                        &mut self.prev_non_idle,
+                        &self.sys,
+                        prev_proc,
                         &mut self.pid_mapping,
-                        self.use_current_cpu_total,
-                        normalize_cpu,
+                        proc_harvest_options,
                         current_instant
                             .duration_since(self.last_collection_time)
                             .as_secs(),
@@ -413,48 +367,45 @@ impl DataCollector {
             }
         }
 
-        let network_data_fut = {
-            #[cfg(any(target_os = "windows", target_os = "freebsd"))]
+        if self.widgets_to_harvest.use_mem {
+            let MemCollect {
+                ram,
+                swap,
+                #[cfg(feature = "gpu")]
+                gpus,
+                #[cfg(feature = "zfs")]
+                arc,
+            } = memory::get_mem_data(&self.sys, self.widgets_to_harvest.use_gpu);
+
+            self.data.memory = ram;
+            self.data.swap = swap;
+
+            #[cfg(feature = "zfs")]
             {
-                network::get_network_data(
-                    &self.sys,
-                    self.last_collection_time,
-                    &mut self.total_rx,
-                    &mut self.total_tx,
-                    current_instant,
-                    self.widgets_to_harvest.use_net,
-                    &self.filters.net_filter,
-                )
+                self.data.arc = arc;
             }
-            #[cfg(not(any(target_os = "windows", target_os = "freebsd")))]
+
+            #[cfg(feature = "gpu")]
             {
-                network::get_network_data(
-                    self.last_collection_time,
-                    &mut self.total_rx,
-                    &mut self.total_tx,
-                    current_instant,
-                    self.widgets_to_harvest.use_net,
-                    &self.filters.net_filter,
-                )
+                self.data.gpu = gpus;
             }
-        };
-        let mem_data_fut = {
-            #[cfg(not(target_os = "freebsd"))]
-            {
-                memory::get_mem_data(
-                    self.widgets_to_harvest.use_mem,
-                    self.widgets_to_harvest.use_gpu,
-                )
-            }
-            #[cfg(target_os = "freebsd")]
-            {
-                memory::get_mem_data(
-                    &self.sys,
-                    self.widgets_to_harvest.use_mem,
-                    self.widgets_to_harvest.use_gpu,
-                )
-            }
-        };
+        }
+
+        if self.widgets_to_harvest.use_net {
+            let net_data = network::get_network_data(
+                &self.sys,
+                self.last_collection_time,
+                &mut self.total_rx,
+                &mut self.total_tx,
+                current_instant,
+                &self.filters.net_filter,
+            );
+
+            self.total_rx = net_data.total_rx;
+            self.total_tx = net_data.total_tx;
+            self.data.network = Some(net_data);
+        }
+
         let disk_data_fut = disks::get_disk_usage(
             self.widgets_to_harvest.use_disk,
             &self.filters.disk_filter,
@@ -462,38 +413,7 @@ impl DataCollector {
         );
         let disk_io_usage_fut = disks::get_io_usage(self.widgets_to_harvest.use_disk);
 
-        let (net_data, mem_res, disk_res, io_res) = join!(
-            network_data_fut,
-            mem_data_fut,
-            disk_data_fut,
-            disk_io_usage_fut,
-        );
-
-        if let Ok(net_data) = net_data {
-            if let Some(net_data) = &net_data {
-                self.total_rx = net_data.total_rx;
-                self.total_tx = net_data.total_tx;
-            }
-            self.data.network = net_data;
-        }
-
-        if let Ok(memory) = mem_res.ram {
-            self.data.memory = memory;
-        }
-
-        if let Ok(swap) = mem_res.swap {
-            self.data.swap = swap;
-        }
-
-        #[cfg(feature = "zfs")]
-        if let Ok(arc) = mem_res.arc {
-            self.data.arc = arc;
-        }
-
-        #[cfg(feature = "gpu")]
-        if let Ok(gpu) = mem_res.gpus {
-            self.data.gpu = gpu;
-        }
+        let (disk_res, io_res) = join!(disk_data_fut, disk_io_usage_fut,);
 
         if let Ok(disks) = disk_res {
             self.data.disks = disks;

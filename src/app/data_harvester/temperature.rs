@@ -24,7 +24,7 @@ pub struct TempHarvest {
     pub temperature: f32,
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum TemperatureType {
     Celsius,
     Kelvin,
@@ -47,18 +47,14 @@ fn convert_celsius_to_fahrenheit(celsius: f32) -> f32 {
 
 fn is_temp_filtered(filter: &Option<Filter>, text: &str) -> bool {
     if let Some(filter) = filter {
-        if filter.is_list_ignored {
-            let mut ret = true;
-            for r in &filter.list {
-                if r.is_match(text) {
-                    ret = false;
-                    break;
-                }
+        let mut ret = filter.is_list_ignored;
+        for r in &filter.list {
+            if r.is_match(text) {
+                ret = !filter.is_list_ignored;
+                break;
             }
-            ret
-        } else {
-            true
         }
+        ret
     } else {
         true
     }
