@@ -182,7 +182,7 @@ fn main() -> Result<()> {
                         &app,
                         &collection_thread_ctrl_sender,
                         &sender,
-                        thread_termination_cvar.clone(),
+                        //thread_termination_cvar.clone(),
                     ) {
                         break;
                     }

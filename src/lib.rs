@@ -111,7 +111,7 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 
 pub fn handle_key_event_or_break(
     event: KeyEvent, app: &'static Mutex<Option<App>>, reset_sender: &Sender<ThreadControlEvent>,
-    sender: &Sender<BottomEvent>, termination_ctrl_cvar: Arc<Condvar>,
+    sender: &Sender<BottomEvent>, //termination_ctrl_cvar: Arc<Condvar>,
 ) -> bool {
     let current_widget_id = app
         .lock()
@@ -271,10 +271,10 @@ pub fn handle_key_event_or_break(
             KeyCode::Down => app_mut.on_down_key(),
             KeyCode::Left => app_mut.on_left_key(),
             KeyCode::Right => app_mut.on_right_key(),
-            KeyCode::Char('r') => {
+            /*KeyCode::Char('r') => {
                 termination_ctrl_cvar.notify_all();
                 return false;
-            }
+            }*/
             KeyCode::Char(caught_char) => app_mut.on_char_key(caught_char),
             KeyCode::Esc => app_mut.on_esc(),
             KeyCode::Enter => app_mut.on_enter(),
