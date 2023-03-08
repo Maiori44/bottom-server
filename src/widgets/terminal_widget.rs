@@ -90,6 +90,9 @@ impl UnsafeTerminalWidgetState {
         let mut app_lock = self.lock();
         let t = self.get_tws(&mut app_lock);
         t.stdout += &from_utf8_lossy(&strip(output).unwrap());
+        unsafe {
+            (*self.sender).send(BottomEvent::Resize).unwrap_unchecked();
+        }
     }
 
     pub fn limit_output(&mut self) {

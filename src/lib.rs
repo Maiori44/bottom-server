@@ -190,7 +190,7 @@ pub fn handle_key_event_or_break(
                                     output.stdout.unwrap().read_to_end(&mut end).unwrap();
                                     output.stderr.unwrap().read_to_end(&mut end).unwrap();
                                     t.append_output(&end);
-                                    //t.limit_output();
+                                    t.limit_output();
                                     t.finish();
                                 });
                             }
