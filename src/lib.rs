@@ -111,7 +111,9 @@ pub fn handle_mouse_event(event: MouseEvent, app: &mut App) {
 }
 
 pub fn handle_key_event_or_break(
-    event: KeyEvent, app: &'static Mutex<Option<App>>, reset_sender: &Sender<ThreadControlEvent>,
+    event: KeyEvent,
+    app: &'static Mutex<Option<App>>,
+    reset_sender: &Sender<ThreadControlEvent>,
     sender: &Sender<BottomEvent>, //termination_ctrl_cvar: Arc<Condvar>,
 ) -> bool {
     let current_widget_id = app
@@ -168,7 +170,7 @@ pub fn handle_key_event_or_break(
                                 let mut t = UnsafeTerminalWidgetState {
                                     id: current_widget_id,
                                     app,
-                                    sender
+                                    sender,
                                 };
                                 thread::spawn(move || {
                                     let command = t.stdin();

@@ -58,10 +58,7 @@ impl UnsafeTerminalWidgetState {
         &self, app_lock: &'a mut MutexGuard<'_, Option<App>>,
     ) -> &'a mut TerminalWidgetState {
         let app = app_lock.as_mut().unwrap();
-        app.terminal_state
-            .widget_states
-            .get_mut(&self.id)
-            .unwrap()
+        app.terminal_state.widget_states.get_mut(&self.id).unwrap()
     }
 
     pub fn stdin(&mut self) -> String {
