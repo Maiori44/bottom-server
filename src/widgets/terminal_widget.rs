@@ -89,7 +89,11 @@ impl UnsafeTerminalWidgetState {
     pub fn append_output(&mut self, output: &[u8]) {
         let mut app_lock = self.lock();
         let t = self.get_tws(&mut app_lock);
-        t.stdout += &from_utf8_lossy(&strip(output).unwrap());
+        let new_output = from_utf8_lossy(output);
+        t.stdout += &new_output;
+        if new_output.contains('\n') {
+            t.stdout = String::from_utf8_lossy(&strip(&t.stdout).unwrap()).to_string();
+        }
         unsafe {
             (*self.sender).send(BottomEvent::Resize).unwrap_unchecked();
         }
