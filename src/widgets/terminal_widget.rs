@@ -44,6 +44,7 @@ unsafe impl Sync for TerminalWidgetState {}
 unsafe impl Send for TerminalWidgetState {}
 
 pub struct UnsafeTerminalWidgetState {
+    pub id: u64,
     pub app: &'static Mutex<Option<App>>,
     pub sender: *const Sender<BottomEvent>,
 }
@@ -57,10 +58,9 @@ impl UnsafeTerminalWidgetState {
         &self, app_lock: &'a mut MutexGuard<'_, Option<App>>,
     ) -> &'a mut TerminalWidgetState {
         let app = app_lock.as_mut().unwrap();
-        let current_widget_id = app.current_widget.widget_id;
         app.terminal_state
             .widget_states
-            .get_mut(&current_widget_id)
+            .get_mut(&self.id)
             .unwrap()
     }
 

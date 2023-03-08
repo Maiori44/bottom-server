@@ -164,7 +164,11 @@ pub fn handle_key_event_or_break(
                             terminal_widget_state.input_offset = 0;
                             drop(app_lock);
                             {
-                                let mut t = UnsafeTerminalWidgetState { app, sender };
+                                let mut t = UnsafeTerminalWidgetState {
+                                    id: current_widget_id,
+                                    app,
+                                    sender
+                                };
                                 thread::spawn(move || {
                                     let command = t.stdin();
                                     let mut output = Command::new("bash")
