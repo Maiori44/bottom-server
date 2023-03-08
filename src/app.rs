@@ -150,6 +150,7 @@ pub struct App {
     pub filters: DataFilters,
 }
 
+// TODO: Should probably set a fallback max signal/not supported for this.
 #[cfg(target_os = "windows")]
 const MAX_SIGNAL: usize = 1;
 #[cfg(target_os = "linux")]
